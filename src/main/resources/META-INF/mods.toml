@@ -1,0 +1,59 @@
+modLoader="javafml" #mandatory
+loaderVersion="${loader_version_range}"
+
+# License
+license="GNU GPLv3"
+
+# A URL to refer people to when problems occur with this mod
+issueTrackerURL="https://github.com/gottsch/gottsch-minecraft-Dungeon-Denizens-API/issues" #optional
+
+[[mods]] #mandatory
+modId="${mod_id}" #mandatory
+version="${mod_version}" #mandatory
+displayName="Dungeon Denizens API" #mandatory
+
+# A URL to query for updates for this mod. See the JSON update specification https://mcforge.readthedocs.io/en/latest/gettingstarted/autoupdate/
+updateJSONURL="https://raw.githubusercontent.com/gottsch/gottsch-minecraft-Dungeon-Denizens-API/1.20.1-main/update.json"
+
+# A URL for the "homepage" for this mod, displayed in the mod UI
+displayURL="https://www.curseforge.com/minecraft/mc-mods/dungeon-denizens" #optional
+
+# A file name (in the root of the mod JAR) containing a logo for display
+logoFile="ddenizens_curseforge_logo.png" #optional
+
+# A text field displayed in the mod UI
+credits="" #optional
+
+# A text field displayed in the mod UI
+authors="gottsch" #optional
+
+# The description text for the mod (multi line!) (#mandatory)
+description="A mod that adds a classical set of mobs to your Minecraft world. The main influence of most of these creatures is from playing Ultima IV & V back in the day."
+
+# A dependency - use the . to indicate dependency for a specific modid. Dependencies are optional.
+[[dependencies.ddenizensapi]] #optional
+# the modid of the dependency
+modId="forge" #mandatory
+# Does this dependency have to exist - if not, ordering below must be specified
+mandatory=true #mandatory
+# The version range of the dependency
+versionRange="${forge_version_range}" #mandatory
+# An ordering relationship for the dependency - BEFORE or AFTER required if the relationship is not mandatory
+ordering="NONE"
+# Side this dependency is applied on - BOTH, CLIENT or SERVER
+side="BOTH"
+# Here's another dependency
+[[dependencies.ddenizensapi]]
+modId="minecraft"
+mandatory=true
+# This version range declares a minimum of the current minecraft version up to but not including the next major version
+versionRange="${minecraft_version_range}"
+ordering="NONE"
+side="BOTH"
+[[dependencies.ddenizensapi]]
+modId="gottschcore"
+mandatory=true
+# This version range declares a minimum of the current minecraft version up to but not including the next major version
+versionRange="[2.1.0,]"
+ordering="BEFORE"
+side="BOTH"
