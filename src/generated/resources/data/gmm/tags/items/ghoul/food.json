@@ -1,0 +1,22 @@
+{
+  "values": [
+    "minecraft:rotten_flesh",
+    "minecraft:beef",
+    "minecraft:chicken",
+    "minecraft:mutton",
+    "minecraft:rabbit",
+    "minecraft:cod",
+    "minecraft:salmon",
+    "minecraft:tropical_fish",
+    "minecraft:cooked_beef",
+    "minecraft:cooked_chicken",
+    "minecraft:cooked_mutton",
+    "minecraft:cooked_rabbit",
+    "minecraft:cooked_cod",
+    "minecraft:cooked_salmon",
+    "minecraft:bone",
+    "minecraft:leather",
+    "minecraft:rabbit_hide",
+    "minecraft:feather"
+  ]
+}

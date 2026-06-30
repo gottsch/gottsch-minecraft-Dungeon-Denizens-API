@@ -1,4 +1,4 @@
-# Changelog for Dungeon Denizens API 1.20.1
+# Changelog for gottsch's Monster Manual 1.20.1
 
 All notable changes to this project will be documented in this file.
 
@@ -9,5 +9,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- moved IDenizensMonster, DenizensMonster to API mod
+- moved IDenizensMonster, DenizensMonster to from Dungeons Denizens
+  - rename IDenizensMonster to IGMMMonster, GMMMonster
 - removed MonsterSize enum and properties
