@@ -21,7 +21,7 @@ import java.util.function.Supplier;
 /**
  * Generalized from Dungeon Denizens.
  *
- * @author Mark Gottschling on Jan 11, 2024
+ * @author Mark Gottschling on 7/1/2026
  */
 public class DeathTyrant extends Beholderkin {
 

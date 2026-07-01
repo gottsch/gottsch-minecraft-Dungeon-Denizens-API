@@ -12,7 +12,7 @@ import java.util.function.Function;
 /**
  * Generalized from Dungeon Denizens.
  *
- * @author Mark Gottschling on Jan 10, 2024
+ * @author Mark Gottschling on 7/1/2026
  *
  * @param <T>
  */

@@ -16,6 +16,8 @@ import java.util.Random;
 
 /**
  * Generalized from Dungeon Denizens.
+ *
+ * @author Mark Gottschling on 7/1/2026
  */
 public class SpectatorModel<T extends Entity> extends BeholderkinModel<T> {
 	public static final String MODEL_NAME = "spectator_model";

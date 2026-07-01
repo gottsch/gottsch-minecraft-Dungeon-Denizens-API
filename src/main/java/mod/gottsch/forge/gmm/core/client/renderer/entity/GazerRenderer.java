@@ -13,7 +13,7 @@ import net.minecraft.resources.ResourceLocation;
 /**
  * Generalized from Dungeon Denizens.
  *
- * @author Mark Gottschling on Apr 6, 2022
+ * @author Mark Gottschling on 7/1/2026
  *
  * @param <T>
  */

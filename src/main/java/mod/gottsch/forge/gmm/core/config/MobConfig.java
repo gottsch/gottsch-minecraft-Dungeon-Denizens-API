@@ -70,13 +70,23 @@ public record MobConfig(SpawnSettings spawn, Optional<SpawnSettings> netherSpawn
 
     /**
      * Spawn-gating settings. Spawn weight/count are NOT here -- those remain data-driven via
-     * Forge {@code add_spawns} biome modifiers. This only gates whether/where a mob may spawn.
+     * Forge {@code add_spawns} biome modifiers. This only gates whether/where a mob may spawn:
+     * enabled, height band, sky-exposure requirement, and whether darkness is required. Consumers
+     * read these in their spawn predicate; gmm's own mob classes do not (gating is consumer-side).
      */
-    public record SpawnSettings(boolean enabled, int minHeight, int maxHeight) {
+    public record SpawnSettings(boolean enabled, int minHeight, int maxHeight,
+                                SkyVisibility skyVisibility, boolean requiresDarkness) {
         public static final Codec<SpawnSettings> CODEC = RecordCodecBuilder.create(instance -> instance.group(
                 Codec.BOOL.optionalFieldOf("enabled", true).forGetter(SpawnSettings::enabled),
                 Codec.INT.optionalFieldOf("minHeight", -64).forGetter(SpawnSettings::minHeight),
-                Codec.INT.optionalFieldOf("maxHeight", 319).forGetter(SpawnSettings::maxHeight)
+                Codec.INT.optionalFieldOf("maxHeight", 319).forGetter(SpawnSettings::maxHeight),
+                SkyVisibility.CODEC.optionalFieldOf("skyVisibility", SkyVisibility.ANY).forGetter(SpawnSettings::skyVisibility),
+                Codec.BOOL.optionalFieldOf("requiresDarkness", true).forGetter(SpawnSettings::requiresDarkness)
         ).apply(instance, SpawnSettings::new));
+
+        /** Standard-monster convenience: {@code ANY} sky + darkness required. */
+        public SpawnSettings(boolean enabled, int minHeight, int maxHeight) {
+            this(enabled, minHeight, maxHeight, SkyVisibility.ANY, true);
+        }
     }
 }

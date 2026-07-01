@@ -17,7 +17,7 @@ import net.minecraft.world.phys.Vec3;
  * CastParalysisGoal (its single-spell special case) -- {@link #CastSpellGoal(Mob, int, SpellLauncher)}
  * covers the latter by wrapping a single-entry {@link WeightedCollection}.
  *
- * @author Mark Gottschling
+ * @author Mark Gottschling on 7/1/2026
  */
 public class CastSpellGoal extends Goal {
     private static final int DEFAULT_CHARGE_TIME = 80;
@@ -35,6 +35,8 @@ public class CastSpellGoal extends Goal {
     private final Mob mob;
     private final WeightedCollection<Integer, SpellLauncher> spells;
     private final int chargeTime;
+    /** Extra "don't cast in melee" buffer beyond the caster's own attack reach; 0 = attack reach only. */
+    private final double meleeDistance;
     private int chargeTimeCount;
 
     public CastSpellGoal(Mob caster, WeightedCollection<Integer, SpellLauncher> spells) {
@@ -42,18 +44,31 @@ public class CastSpellGoal extends Goal {
     }
 
     public CastSpellGoal(Mob caster, int chargeTime, WeightedCollection<Integer, SpellLauncher> spells) {
+        this(caster, chargeTime, 0D, spells);
+    }
+
+    public CastSpellGoal(Mob caster, int chargeTime, double meleeDistance, WeightedCollection<Integer, SpellLauncher> spells) {
         this.mob = caster;
         this.spells = spells;
         this.chargeTime = chargeTime;
+        this.meleeDistance = meleeDistance;
     }
 
     public CastSpellGoal(Mob caster, int chargeTime, SpellLauncher singleSpell) {
-        this(caster, chargeTime, new WeightedCollection<Integer, SpellLauncher>().add(1, singleSpell));
+        this(caster, chargeTime, 0D, singleSpell);
+    }
+
+    public CastSpellGoal(Mob caster, int chargeTime, double meleeDistance, SpellLauncher singleSpell) {
+        this(caster, chargeTime, meleeDistance, new WeightedCollection<Integer, SpellLauncher>().add(1, singleSpell));
     }
 
     @Override
     public boolean canUse() {
-        return this.mob.getTarget() != null && !(this.getAttackReachSqr(mob.getTarget()) >= this.mob.distanceToSqr(mob.getTarget().getX(), mob.getTarget().getY(), mob.getTarget().getZ()));
+        if (this.mob.getTarget() == null) {
+            return false;
+        }
+        double minDistSqr = Math.max(this.meleeDistance, this.getAttackReachSqr(mob.getTarget()));
+        return this.mob.distanceToSqr(mob.getTarget().getX(), mob.getTarget().getY(), mob.getTarget().getZ()) > minDistSqr;
     }
 
     @Override

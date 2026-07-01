@@ -27,7 +27,7 @@ import java.util.function.Supplier;
  * built-in synced-UUID system (previously a bespoke, unpersisted field on this class) --
  * {@link #canSummonedHaveOwner()} opts Spectator into it when chance-summoned.
  *
- * @author Mark Gottschling on Jan 12, 2024
+ * @author Mark Gottschling on 7/1/2026
  */
 public class Spectator extends Beholderkin {
 

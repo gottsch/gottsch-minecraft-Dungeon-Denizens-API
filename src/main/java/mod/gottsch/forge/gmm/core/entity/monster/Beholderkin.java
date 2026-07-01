@@ -21,7 +21,7 @@ import java.util.Random;
  *
  * Generalized from Dungeon Denizens.
  *
- * @author Mark Gottschling on Jan 9, 2024
+ * @author Mark Gottschling on 7/1/2026
  */
 public abstract class Beholderkin extends GMMFlyingMonster {
 

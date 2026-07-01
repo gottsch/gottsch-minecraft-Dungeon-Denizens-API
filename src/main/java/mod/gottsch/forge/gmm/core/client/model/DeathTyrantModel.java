@@ -18,7 +18,7 @@ import java.util.Random;
 /**
  * Generalized from Dungeon Denizens.
  *
- * @author Mark Gottschling on Jan 11, 2024
+ * @author Mark Gottschling on 7/1/2026
  */
 public class DeathTyrantModel<T extends Entity> extends BeholderkinModel<T> {
 	public static final String MODEL_NAME = "death_tyrant_model";

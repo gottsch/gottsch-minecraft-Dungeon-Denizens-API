@@ -21,7 +21,7 @@ import net.minecraft.world.entity.Entity;
 /**
  * Generalized from Dungeon Denizens.
  *
- * @author Mark Gottschling on Apr 4, 2022
+ * @author Mark Gottschling on 7/1/2026
  *
  * @param <T>
  */

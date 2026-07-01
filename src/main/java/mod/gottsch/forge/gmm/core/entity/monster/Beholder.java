@@ -25,7 +25,7 @@ import java.util.function.Supplier;
  *
  * Generalized from Dungeon Denizens.
  *
- * @author Mark Gottschling on Jan 9, 2024
+ * @author Mark Gottschling on 7/1/2026
  */
 public class Beholder extends Beholderkin {
 

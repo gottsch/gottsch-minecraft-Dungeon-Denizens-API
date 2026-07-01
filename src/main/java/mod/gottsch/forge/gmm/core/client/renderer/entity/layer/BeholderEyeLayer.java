@@ -17,7 +17,7 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 /**
  * Generalized from Dungeon Denizens.
  *
- * @author Mark Gottschling on Jan 14, 2024
+ * @author Mark Gottschling on 7/1/2026
  *
  * @param <T>
  * @param <M>
