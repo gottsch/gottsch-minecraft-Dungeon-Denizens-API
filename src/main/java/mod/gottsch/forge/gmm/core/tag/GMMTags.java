@@ -25,6 +25,16 @@ public class GMMTags {
         public static final TagKey<Item> SKELETON_WARRIOR_LEGGINGS = mod(GMM.MOD_ID, "skeleton_warrior/leggings");
         public static final TagKey<Item> SKELETON_WARRIOR_BOOTS = mod(GMM.MOD_ID, "skeleton_warrior/boots");
 
+        // Orc weapon pool (consumer-populated)
+        public static final TagKey<Item> ORC_WEAPONS = mod(GMM.MOD_ID, "orc/weapons");
+
+        // Shadow spawn weapon pool (consumer-populated)
+        public static final TagKey<Item> SHADOW_WEAPONS = mod(GMM.MOD_ID, "shadow/weapons");
+        // Shadow-bane weapons: bypass the Shadow's metal resistance and deal bonus damage.
+        // BANE = +2 (gold-tier bane), MINOR_BANE = +1. Gold swords are handled intrinsically.
+        public static final TagKey<Item> SHADOW_BANE = mod(GMM.MOD_ID, "shadow/bane");
+        public static final TagKey<Item> SHADOW_MINOR_BANE = mod(GMM.MOD_ID, "shadow/minor_bane");
+
         public static TagKey<Item> mod(String domain, String path) {
             return ItemTags.create(new ResourceLocation(domain, path));
         }

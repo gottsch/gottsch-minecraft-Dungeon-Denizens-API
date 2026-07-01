@@ -1,6 +1,7 @@
 package mod.gottsch.forge.gmm.core.entity.monster;
 
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.entity.LivingEntity;
 
 import javax.annotation.Nullable;
 import java.util.UUID;
@@ -20,4 +21,18 @@ public interface IGMMMonster {
     public UUID getOwnerUUID();
     void setOwnerUUID(@Nullable UUID uuid);
     // /// END of NOTE
+
+    /**
+     * Resolves the owner (the entity that summoned/conjured this mob) from the stored UUID.
+     */
+    @Nullable
+    LivingEntity getSummonedOwner();
+
+    /**
+     * Whether a mob summoned via {@code SummonGoal} should have its owner set to the summoner.
+     * Most GMM mobs are never chance-summoned by another mob, so this defaults to false.
+     */
+    default boolean canSummonedHaveOwner() {
+        return false;
+    }
 }

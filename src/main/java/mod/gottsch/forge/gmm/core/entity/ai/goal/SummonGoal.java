@@ -61,8 +61,8 @@ public abstract class SummonGoal extends Goal {
 					Mob mob = entityType.create(level);
 					mob.setPos((double)spawnX, (double)spawnY, (double)spawnZ);
 					mob.setTarget(target);
-					if (mob instanceof IGMMMonster) { // TODO or check capability (for vanilla or other mods that you apply caps to)
-						((IGMMMonster)mob).setOwnerUUID(owner.getUUID());
+					if (mob instanceof IGMMMonster gmmMob && gmmMob.canSummonedHaveOwner()) {
+						gmmMob.setOwnerUUID(owner.getUUID());
 					}
 
 					ForgeEventFactory.onFinalizeSpawn(mob, level, level.getCurrentDifficultyAt(spawnCoords.toPos()), MobSpawnType.MOB_SUMMONED, (SpawnGroupData)null, (CompoundTag)null);

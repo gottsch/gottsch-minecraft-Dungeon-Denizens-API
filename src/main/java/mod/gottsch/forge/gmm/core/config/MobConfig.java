@@ -27,7 +27,7 @@ import java.util.Optional;
  * Datapack-driven, codec-backed per-mob configuration.
  * <p>
  * gmm is a pure library and deliberately knows nothing about any consumer's mob set, so the
- * behavior payload is intentionally generic: numeric knobs live in {@link #numbers} and boolean
+ * behavior payload is intentionally generic: numeric knobs live in {@link #properties} and boolean
  * knobs in {@link #flags}, keyed by string. The consuming mod (and gmm's own mob classes) read
  * known keys (e.g. {@code "healAmount"}, {@code "canOpenDoors"}) via the typed accessors.
  * <p>
@@ -37,7 +37,7 @@ import java.util.Optional;
  * @author by Mark Gottschling on 6/29/2026
  */
 public record MobConfig(SpawnSettings spawn, Optional<SpawnSettings> netherSpawn,
-                        Map<String, Double> numbers, Map<String, Boolean> flags) {
+                        Map<String, Double> properties, Map<String, Boolean> flags) {
 
     public static final SpawnSettings DEFAULT_SPAWN = new SpawnSettings(true, -64, 319);
 
@@ -47,13 +47,13 @@ public record MobConfig(SpawnSettings spawn, Optional<SpawnSettings> netherSpawn
     public static final Codec<MobConfig> CODEC = RecordCodecBuilder.create(instance -> instance.group(
             SpawnSettings.CODEC.optionalFieldOf("spawn", DEFAULT_SPAWN).forGetter(MobConfig::spawn),
             SpawnSettings.CODEC.optionalFieldOf("netherSpawn").forGetter(MobConfig::netherSpawn),
-            Codec.unboundedMap(Codec.STRING, Codec.DOUBLE).optionalFieldOf("numbers", Map.of()).forGetter(MobConfig::numbers),
+            Codec.unboundedMap(Codec.STRING, Codec.DOUBLE).optionalFieldOf("properties", Map.of()).forGetter(MobConfig::properties),
             Codec.unboundedMap(Codec.STRING, Codec.BOOL).optionalFieldOf("flags", Map.of()).forGetter(MobConfig::flags)
     ).apply(instance, MobConfig::new));
 
     /** Numeric knob lookup with a code-side default. */
     public double number(String key, double defaultValue) {
-        Double value = numbers.get(key);
+        Double value = properties.get(key);
         return value != null ? value : defaultValue;
     }
 

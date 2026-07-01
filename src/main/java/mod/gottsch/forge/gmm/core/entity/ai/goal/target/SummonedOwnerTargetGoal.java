@@ -1,6 +1,6 @@
 package mod.gottsch.forge.gmm.core.entity.ai.goal.target;
 
-import mod.gottsch.forge.gmm.core.entity.monster.GMMMonster;
+import mod.gottsch.forge.gmm.core.entity.monster.IGMMMonster;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.goal.Goal;
@@ -11,24 +11,27 @@ import java.util.EnumSet;
 
 /**
  * Makes a summoned mob assist its summoner: it targets whatever its owner is fighting.
- * The owner is resolved from {@link GMMMonster#getSummonedOwner()} (player or mob).
+ * The owner is resolved from {@link IGMMMonster#getSummonedOwner()} (player or mob), so this
+ * works for any GMM mob base (e.g. both {@code GMMMonster} and {@code GMMFlyingMonster}).
  *
  * Generalized from Dungeon Denizens.
  *
  * @author Mark Gottschling on Jan 14, 2024
  */
 public class SummonedOwnerTargetGoal extends TargetGoal {
-    private final GMMMonster mob;
+    // TargetGoal already provides a protected Mob "mob" field; this holds the same instance
+    // typed as IGMMMonster so getSummonedOwner() is reachable regardless of the GMM base class.
+    private final IGMMMonster summonable;
 
-    public SummonedOwnerTargetGoal(GMMMonster mob) {
+    public SummonedOwnerTargetGoal(Mob mob) {
         super(mob, false);
-        this.mob = mob;
+        this.summonable = (IGMMMonster) mob;
         this.setFlags(EnumSet.of(Goal.Flag.TARGET));
     }
 
     @Override
     public boolean canUse() {
-        LivingEntity owner = this.mob.getSummonedOwner();
+        LivingEntity owner = this.summonable.getSummonedOwner();
         LivingEntity target = this.mob.getTarget();
         if (owner == null || (target != null && !target.equals(owner))) {
             return false;
@@ -38,7 +41,7 @@ public class SummonedOwnerTargetGoal extends TargetGoal {
 
     @Override
     public void start() {
-        LivingEntity owner = this.mob.getSummonedOwner();
+        LivingEntity owner = this.summonable.getSummonedOwner();
         if (owner instanceof Player player) {
             if (player.getLastHurtByMob() != null) {
                 this.mob.setTarget(player.getLastHurtByMob());
