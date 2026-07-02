@@ -1,5 +1,6 @@
-package mod.gottsch.forge.gmm.core.entity.monster;
+package mod.gottsch.forge.gmm.core.entity.monster.skeleton;
 
+import mod.gottsch.forge.gmm.core.entity.monster.GMMFlyingMonster;
 import mod.gottsch.forge.gottschcore.random.RandomHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;

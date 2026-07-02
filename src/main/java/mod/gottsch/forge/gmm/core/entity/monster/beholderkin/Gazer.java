@@ -1,4 +1,4 @@
-package mod.gottsch.forge.gmm.core.entity.monster;
+package mod.gottsch.forge.gmm.core.entity.monster.beholderkin;
 
 import mod.gottsch.forge.gmm.core.config.MobConfig;
 import mod.gottsch.forge.gmm.core.config.MobConfigHelper;
@@ -23,30 +23,27 @@ import java.util.function.Supplier;
  *
  * @author Mark Gottschling on 7/1/2026
  */
-public class DeathTyrant extends Beholderkin {
+public class Gazer extends Beholderkin {
 
-	/** Consumer-supplied single spell launcher (Paralysis); GMM owns no concrete spell. */
-	public static CastSpellGoal.SpellLauncher spellCaster;
+	/** Consumer-supplied weighted spell list; GMM owns no concrete spell. */
+	public static WeightedCollection<Integer, CastSpellGoal.SpellLauncher> spellCaster;
 
-	/** Consumer-supplied weighted list of minions DeathTyrant can conjure. */
+	/** Consumer-supplied weighted list of minions Gazer can conjure. */
 	public static WeightedCollection<Double, EntityType<? extends Mob>> summonMobs;
-
-	/** Consumer-supplied rare Daemon-summon target. */
-	public static EntityType<? extends Mob> summonDaemon;
 
 	public static Supplier<SoundEvent> ambientSound;
 
-	public DeathTyrant(EntityType<? extends FlyingMob> entityType, Level level) {
+	public Gazer(EntityType<? extends FlyingMob> entityType, Level level) {
 		super(entityType, level);
 		this.moveControl = new BeholderkinMoveControl(this);
-		this.xpReward = 20;
+		this.xpReward = 10;
 	}
 
 	@Override
 	protected void registerGoals() {
 		MobConfig config = MobConfigHelper.get(this);
-		this.goalSelector.addGoal(4, new BeholderkinBiteGoal(this, (int) config.number("biteCooldownTime", 40)));
-		this.goalSelector.addGoal(5, new BeholderkinRandomFloatAroundGoal(this, (int) config.number("maxFloatHeight", 8)));
+		this.goalSelector.addGoal(4, new BeholderkinBiteGoal(this, (int) config.number("biteCooldownTime", 20)));
+		this.goalSelector.addGoal(5, new BeholderkinRandomFloatAroundGoal(this, (int) config.number("maxFloatHeight", 5)));
 		this.goalSelector.addGoal(7, new BeholderkinLookGoal(this));
 
 		if (spellCaster != null) {
@@ -54,14 +51,10 @@ public class DeathTyrant extends Beholderkin {
 		}
 
 		if (summonMobs != null) {
-			this.goalSelector.addGoal(6, new WeightedChanceSummonGoal(this, (int) config.number("summonCooldownTime", 1200), 100, summonMobs, (int) config.number("minSummonSpawns", 2), (int) config.number("maxSummonSpawns", 5)));
+			this.goalSelector.addGoal(6, new WeightedChanceSummonGoal(this, (int) config.number("summonCooldownTime", 2400), 100, summonMobs, (int) config.number("minSummonSpawns", 1), (int) config.number("maxSummonSpawns", 1)));
 		}
-		if (summonDaemon != null) {
-			this.goalSelector.addGoal(6, new WeightedChanceSummonGoal(this, (int) config.number("summonDaemonCooldownTime", 2400), 40, summonDaemon, 1, 1));
-		}
-		// NOTE unaffected by Boulders
-		// TODO need custom hurtbyTarget like headless
-		// TODO headless hurtby needs to be become a stand alone class that any mob can use
+
+		// NOTE Boulder-targeting is injected consumer-side (gmm owns no Boulder); see DD CommonSetup.
 		this.targetSelector.addGoal(2, new NearestAttackableTargetGoal<>(this, Player.class, true));
 	}
 
@@ -71,23 +64,18 @@ public class DeathTyrant extends Beholderkin {
 	 */
 	public static AttributeSupplier.Builder prepareAttributes() {
 		return Mob.createMobAttributes()
-				.add(Attributes.ATTACK_DAMAGE, 8.0D)
-				.add(Attributes.ATTACK_KNOCKBACK, 1.5D)
+				.add(Attributes.ATTACK_DAMAGE, 6.0D)
+				.add(Attributes.ATTACK_KNOCKBACK, 1.0D)
 				.add(Attributes.ARMOR, 3.0D)
-				.add(Attributes.ARMOR_TOUGHNESS, 3.0D)
-				.add(Attributes.MAX_HEALTH, 36.0)
+				.add(Attributes.ARMOR_TOUGHNESS, 1.0D)
+				.add(Attributes.MAX_HEALTH, 18.0)
 				.add(Attributes.FOLLOW_RANGE, 100.0)
-				.add(Attributes.MOVEMENT_SPEED, 0.20F);
-	}
-
-	@Override
-	public boolean requiresCustomPersistence() {
-		return !MobConfigHelper.get(this).flag("despawn", true);
+				.add(Attributes.MOVEMENT_SPEED, 0.18F);
 	}
 
 	@Override
 	public int getAmbientSoundInterval() {
-		return 160;
+		return 100;
 	}
 
 	@Nullable

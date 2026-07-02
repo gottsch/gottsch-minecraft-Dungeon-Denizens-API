@@ -1,7 +1,8 @@
-package mod.gottsch.forge.gmm.core.entity.monster;
+package mod.gottsch.forge.gmm.core.entity.monster.skeleton;
 
 import mod.gottsch.forge.gmm.core.entity.ai.goal.VariantPowerRangedBowAttackGoal;
 import mod.gottsch.forge.gmm.core.entity.ai.goal.target.SummonedOwnerTargetGoal;
+import mod.gottsch.forge.gmm.core.entity.monster.GMMMonster;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.sounds.SoundEvent;

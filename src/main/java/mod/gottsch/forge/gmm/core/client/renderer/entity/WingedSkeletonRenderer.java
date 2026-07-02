@@ -2,7 +2,7 @@ package mod.gottsch.forge.gmm.core.client.renderer.entity;
 
 import mod.gottsch.forge.gmm.core.GMM;
 import mod.gottsch.forge.gmm.core.client.model.WingedSkeletonModel;
-import mod.gottsch.forge.gmm.core.entity.monster.WingedSkeleton;
+import mod.gottsch.forge.gmm.core.entity.monster.skeleton.WingedSkeleton;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.HumanoidMobRenderer;
 import net.minecraft.resources.ResourceLocation;

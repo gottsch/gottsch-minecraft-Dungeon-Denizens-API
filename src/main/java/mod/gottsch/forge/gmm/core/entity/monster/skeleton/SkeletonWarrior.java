@@ -1,6 +1,7 @@
-package mod.gottsch.forge.gmm.core.entity.monster;
+package mod.gottsch.forge.gmm.core.entity.monster.skeleton;
 
 import mod.gottsch.forge.gmm.core.entity.ai.goal.target.SummonedOwnerTargetGoal;
+import mod.gottsch.forge.gmm.core.entity.monster.GMMMonster;
 import mod.gottsch.forge.gmm.core.tag.GMMTags;
 import mod.gottsch.forge.gmm.core.util.EquipmentUtil;
 import net.minecraft.core.BlockPos;

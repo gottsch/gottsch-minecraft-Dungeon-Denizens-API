@@ -1,4 +1,4 @@
-package mod.gottsch.forge.gmm.core.entity.monster;
+package mod.gottsch.forge.gmm.core.entity.monster.skeleton;
 
 import mod.gottsch.forge.gmm.core.entity.ai.goal.PassiveMeleeAttackGoal;
 import mod.gottsch.forge.gottschcore.random.RandomHelper;

@@ -1,4 +1,4 @@
-package mod.gottsch.forge.gmm.core.entity.monster;
+package mod.gottsch.forge.gmm.core.entity.monster.beholderkin;
 
 import mod.gottsch.forge.gmm.core.config.MobConfig;
 import mod.gottsch.forge.gmm.core.config.MobConfigHelper;

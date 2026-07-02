@@ -2,7 +2,7 @@ package mod.gottsch.forge.gmm.core.client.renderer.entity;
 
 import mod.gottsch.forge.gmm.core.GMM;
 import mod.gottsch.forge.gmm.core.client.model.SkeletonWarriorModel;
-import mod.gottsch.forge.gmm.core.entity.monster.SkeletonWarrior;
+import mod.gottsch.forge.gmm.core.entity.monster.skeleton.SkeletonWarrior;
 import net.minecraft.client.model.geom.ModelLayerLocation;
 import net.minecraft.client.model.geom.ModelLayers;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;

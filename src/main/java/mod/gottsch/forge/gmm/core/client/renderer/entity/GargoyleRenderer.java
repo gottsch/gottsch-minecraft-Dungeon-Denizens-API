@@ -2,7 +2,7 @@ package mod.gottsch.forge.gmm.core.client.renderer.entity;
 
 import mod.gottsch.forge.gmm.core.GMM;
 import mod.gottsch.forge.gmm.core.client.model.GargoyleModel;
-import mod.gottsch.forge.gmm.core.entity.monster.Gargoyle;
+import mod.gottsch.forge.gmm.core.entity.monster.gargoyle.Gargoyle;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.MobRenderer;
 import net.minecraft.resources.ResourceLocation;

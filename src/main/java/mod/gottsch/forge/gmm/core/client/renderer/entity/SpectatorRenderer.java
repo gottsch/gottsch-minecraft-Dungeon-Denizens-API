@@ -4,7 +4,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import mod.gottsch.forge.gmm.core.GMM;
 import mod.gottsch.forge.gmm.core.client.model.SpectatorModel;
 import mod.gottsch.forge.gmm.core.client.renderer.entity.layer.SpectatorEyeLayer;
-import mod.gottsch.forge.gmm.core.entity.monster.Spectator;
+import mod.gottsch.forge.gmm.core.entity.monster.beholderkin.Spectator;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.MobRenderer;
 import net.minecraft.resources.ResourceLocation;

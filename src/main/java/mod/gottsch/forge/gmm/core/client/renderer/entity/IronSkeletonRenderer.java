@@ -3,7 +3,7 @@ package mod.gottsch.forge.gmm.core.client.renderer.entity;
 import com.mojang.blaze3d.vertex.PoseStack;
 import mod.gottsch.forge.gmm.core.GMM;
 import mod.gottsch.forge.gmm.core.client.model.IronSkeletonModel;
-import mod.gottsch.forge.gmm.core.entity.monster.IronSkeleton;
+import mod.gottsch.forge.gmm.core.entity.monster.skeleton.IronSkeleton;
 import net.minecraft.client.model.geom.ModelLayerLocation;
 import net.minecraft.client.model.geom.ModelLayers;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;

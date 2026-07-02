@@ -3,7 +3,7 @@ package mod.gottsch.forge.gmm.core.client.renderer.entity;
 import com.mojang.blaze3d.vertex.PoseStack;
 import mod.gottsch.forge.gmm.core.GMM;
 import mod.gottsch.forge.gmm.core.client.model.MagmaSkeletonModel;
-import mod.gottsch.forge.gmm.core.entity.monster.MagmaSkeleton;
+import mod.gottsch.forge.gmm.core.entity.monster.skeleton.MagmaSkeleton;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.HumanoidMobRenderer;
 import net.minecraft.resources.ResourceLocation;

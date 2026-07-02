@@ -4,7 +4,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import mod.gottsch.forge.gmm.core.GMM;
 import mod.gottsch.forge.gmm.core.client.model.GazerModel;
 import mod.gottsch.forge.gmm.core.client.renderer.entity.layer.GazerEyeLayer;
-import mod.gottsch.forge.gmm.core.entity.monster.Gazer;
+import mod.gottsch.forge.gmm.core.entity.monster.beholderkin.Gazer;
 
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.MobRenderer;

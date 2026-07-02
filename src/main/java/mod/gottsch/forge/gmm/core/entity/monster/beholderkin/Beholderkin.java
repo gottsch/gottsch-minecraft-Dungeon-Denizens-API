@@ -1,5 +1,6 @@
-package mod.gottsch.forge.gmm.core.entity.monster;
+package mod.gottsch.forge.gmm.core.entity.monster.beholderkin;
 
+import mod.gottsch.forge.gmm.core.entity.monster.GMMFlyingMonster;
 import net.minecraft.core.BlockPos;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.EntityType;
