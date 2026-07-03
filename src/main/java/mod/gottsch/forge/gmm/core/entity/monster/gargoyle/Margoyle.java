@@ -19,6 +19,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.function.Supplier;
+import mod.gottsch.forge.gmm.core.sound.GMMSounds;
 
 /**
  * Subterranean relative of the Gargoyle: it cannot really fly, only hover about a foot off the
@@ -29,7 +30,7 @@ import java.util.function.Supplier;
  */
 public class Margoyle extends WingedHumanoid {
     /** Consumer-supplied ambient sound (GMM ships no sound events). Left null = silent. */
-    public static Supplier<SoundEvent> ambientSound;
+    public static Supplier<SoundEvent> ambientSound = () -> GMMSounds.WING_FLAP.get();
 
     public boolean shouldFlee = false;
 

@@ -1,0 +1,38 @@
+{
+  "entity.shadow.ambient": {
+    "subtitle": "subtitles.gmm.entity.shadow.ambient",
+    "sounds": [ "gmm:entity/shadow/ambient" ]
+  },
+  "entity.daemon.ambient": {
+    "subtitle": "subtitles.gmm.entity.daemon.ambient",
+    "sounds": [ "gmm:entity/daemon/ambient" ]
+  },
+  "entity.beholder.ambient": {
+    "subtitle": "subtitles.gmm.entity.beholder.ambient",
+    "sounds": [ "gmm:entity/beholder/ambient", "gmm:entity/beholderkin/ambient1", "gmm:entity/beholderkin/ambient2" ]
+  },
+  "entity.death_tyrant.ambient": {
+    "subtitle": "subtitles.gmm.entity.death_tyrant.ambient",
+    "sounds": [ "gmm:entity/death_tyrant/ambient", "gmm:entity/beholderkin/ambient1", "gmm:entity/beholderkin/ambient2" ]
+  },
+  "entity.gazer.ambient": {
+    "subtitle": "subtitles.gmm.entity.gazer.ambient",
+    "sounds": [ "gmm:entity/gazer/ambient", "gmm:entity/beholderkin/ambient1", "gmm:entity/beholderkin/ambient2" ]
+  },
+  "entity.spectator.ambient": {
+    "subtitle": "subtitles.gmm.entity.spectator.ambient",
+    "sounds": [ "gmm:entity/spectator/ambient", "gmm:entity/beholderkin/ambient1", "gmm:entity/beholderkin/ambient2" ]
+  },
+  "entity.shadowlord.ambient": {
+    "subtitle": "subtitles.gmm.entity.shadowlord.ambient",
+    "sounds": [ "gmm:entity/shadowlord/ambient1", "gmm:entity/shadowlord/ambient2" ]
+  },
+  "entity.shadowlord.step": {
+    "subtitle": "subtitles.gmm.entity.shadowlord.step",
+    "sounds": [ "gmm:entity/shadowlord/step" ]
+  },
+  "entity.wing.flap": {
+    "subtitle": "subtitles.gmm.entity.wing.flap",
+    "sounds": [ "gmm:entity/wing/flap" ]
+  }
+}

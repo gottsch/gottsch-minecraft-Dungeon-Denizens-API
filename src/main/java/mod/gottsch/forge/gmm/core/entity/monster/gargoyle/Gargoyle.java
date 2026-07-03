@@ -21,6 +21,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.function.Supplier;
+import mod.gottsch.forge.gmm.core.sound.GMMSounds;
 
 /**
  * A winged humanoid that walks on the ground and launches into flight to close
@@ -31,7 +32,7 @@ import java.util.function.Supplier;
  */
 public class Gargoyle extends WingedHumanoid {
     /** Consumer-supplied ambient sound (GMM ships no sound events). Left null = silent. */
-    public static Supplier<SoundEvent> ambientSound;
+    public static Supplier<SoundEvent> ambientSound = () -> GMMSounds.WING_FLAP.get();
 
     // abstract out to WingedHumanoid ?? will all winged humanoids flee on hit?
     public boolean shouldFlee = false;

@@ -17,6 +17,7 @@ import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.function.Supplier;
+import mod.gottsch.forge.gmm.core.sound.GMMSounds;
 
 /**
  * Generalized from Dungeon Denizens.
@@ -34,7 +35,7 @@ public class DeathTyrant extends Beholderkin {
 	/** Consumer-supplied rare Daemon-summon target. */
 	public static EntityType<? extends Mob> summonDaemon;
 
-	public static Supplier<SoundEvent> ambientSound;
+	public static Supplier<SoundEvent> ambientSound = () -> GMMSounds.DEATH_TYRANT_AMBIENT.get();
 
 	public DeathTyrant(EntityType<? extends FlyingMob> entityType, Level level) {
 		super(entityType, level);

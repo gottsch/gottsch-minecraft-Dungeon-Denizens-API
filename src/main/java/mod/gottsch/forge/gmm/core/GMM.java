@@ -18,6 +18,7 @@
 package mod.gottsch.forge.gmm.core;
 
 import mod.gottsch.forge.gmm.core.config.GMMRegistries;
+import mod.gottsch.forge.gmm.core.sound.GMMSounds;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
@@ -33,8 +34,11 @@ import org.apache.logging.log4j.Logger;
  * reusing the gmm-namespaced assets. One-off mobs may register in their own mod while
  * still contributing their model/renderer/texture back to this library for reuse.
  * <p>
- * The single exception is a datapack registry ({@link GMMRegistries#MOB_CONFIG}): gmm defines
- * the registry + codec, but ships no entries -- consumers supply the JSON. No game content.
+ * The only registrations are <em>infrastructure</em>, not game content: a datapack registry
+ * ({@link GMMRegistries#MOB_CONFIG} -- gmm defines the registry + codec but ships no entries;
+ * consumers supply the JSON) and default {@link GMMSounds} SoundEvents (a registered SoundEvent is
+ * required to be playable; the matching {@code .ogg} assets ship in gmm, and mob classes use them as
+ * an overridable default). Neither adds mobs, items, or other world content.
  *
  * @author by Mark Gottschling on 4/11/2025
  */
@@ -45,8 +49,10 @@ public class GMM {
     public static final String MOD_ID = "gmm";
 
     public GMM() {
-        // by design gmm registers no game content; only its datapack registry (see class javadoc).
+        // by design gmm registers no game content; only its datapack registry (see class javadoc)
+        // and default SoundEvents (registry infrastructure, not content -- same category exception).
         IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
         modEventBus.register(GMMRegistries.class);
+        GMMSounds.register(modEventBus);
     }
 }

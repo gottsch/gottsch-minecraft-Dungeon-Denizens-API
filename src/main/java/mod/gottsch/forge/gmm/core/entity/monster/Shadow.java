@@ -3,6 +3,7 @@ package mod.gottsch.forge.gmm.core.entity.monster;
 import mod.gottsch.forge.gmm.core.GMM;
 import mod.gottsch.forge.gmm.core.config.MobConfig;
 import mod.gottsch.forge.gmm.core.config.MobConfigHelper;
+import mod.gottsch.forge.gmm.core.sound.GMMSounds;
 import mod.gottsch.forge.gmm.core.tag.GMMTags;
 import mod.gottsch.forge.gottschcore.random.RandomHelper;
 import net.minecraft.nbt.CompoundTag;
@@ -46,9 +47,10 @@ import java.util.function.Supplier;
 public class Shadow extends GMMMonster {
 
     /**
-     * Consumer-supplied ambient sound (GMM ships no sound events). Left null = silent.
+     * Ambient sound: defaults to GMM's own {@link GMMSounds#SHADOW_AMBIENT} (shipped with the mob),
+     * overridable by a consumer that wants its own sound; set to null to silence.
      */
-    public static Supplier<SoundEvent> ambientSound;
+    public static Supplier<SoundEvent> ambientSound = () -> GMMSounds.SHADOW_AMBIENT.get();
 
     private boolean flee;
 

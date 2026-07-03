@@ -57,6 +57,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Iterator;
 import java.util.List;
 import java.util.function.Supplier;
+import mod.gottsch.forge.gmm.core.sound.GMMSounds;
 
 /**
  * Generalized from Dungeon Denizens. Shares Shadow's anti-metal {@code hurt()} mechanic --
@@ -78,8 +79,8 @@ public class Shadowlord extends GMMMonster {
 	public static WeightedCollection<Double, EntityType<? extends Mob>> summonMobs;
 	/** Consumer-supplied rare Daemon-summon target. */
 	public static EntityType<? extends Mob> summonDaemon;
-	public static Supplier<SoundEvent> ambientSound;
-	public static Supplier<SoundEvent> stepSound;
+	public static Supplier<SoundEvent> ambientSound = () -> GMMSounds.SHADOWLORD_AMBIENT.get();
+	public static Supplier<SoundEvent> stepSound = () -> GMMSounds.SHADOWLORD_STEP.get();
 	/** Consumer-supplied default weapon; GMM owns no concrete item. */
 	public static Supplier<Item> weapon;
 

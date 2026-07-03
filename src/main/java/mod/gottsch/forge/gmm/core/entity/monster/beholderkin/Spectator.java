@@ -21,6 +21,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.EnumSet;
 import java.util.function.Supplier;
+import mod.gottsch.forge.gmm.core.sound.GMMSounds;
 
 /**
  * Generalized from Dungeon Denizens. Owner tracking comes from {@link GMMFlyingMonster}'s
@@ -34,7 +35,7 @@ public class Spectator extends Beholderkin {
 	/** Consumer-supplied single spell launcher (Paralysis); GMM owns no concrete spell. */
 	public static CastSpellGoal.SpellLauncher spellCaster;
 
-	public static Supplier<SoundEvent> ambientSound;
+	public static Supplier<SoundEvent> ambientSound = () -> GMMSounds.SPECTATOR_AMBIENT.get();
 
 	private int lifespan;
 

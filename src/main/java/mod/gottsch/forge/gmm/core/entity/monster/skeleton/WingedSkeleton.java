@@ -39,6 +39,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.EnumSet;
 import java.util.Random;
 import java.util.function.Supplier;
+import mod.gottsch.forge.gmm.core.sound.GMMSounds;
 
 /**
  * A flying, bow-wielding skeleton. Floats around, closes to bow or melee range as appropriate, and
@@ -48,7 +49,7 @@ import java.util.function.Supplier;
  */
 public class WingedSkeleton extends GMMFlyingMonster implements RangedAttackMob {
     /** Consumer-supplied ambient sound (GMM ships no sound events). Left null = silent. */
-    public static Supplier<SoundEvent> ambientSound;
+    public static Supplier<SoundEvent> ambientSound = () -> GMMSounds.WING_FLAP.get();
 
     public WingedSkeleton(EntityType<? extends FlyingMob> entityType, Level level) {
         super(entityType, level);

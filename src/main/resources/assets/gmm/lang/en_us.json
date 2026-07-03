@@ -1,0 +1,11 @@
+{
+  "subtitles.gmm.entity.shadow.ambient": "Shadow murmurs",
+  "subtitles.gmm.entity.daemon.ambient": "Daemon growls",
+  "subtitles.gmm.entity.beholder.ambient": "Beholder murmurs",
+  "subtitles.gmm.entity.death_tyrant.ambient": "Death Tyrant murmurs",
+  "subtitles.gmm.entity.gazer.ambient": "Gazer murmurs",
+  "subtitles.gmm.entity.spectator.ambient": "Spectator murmurs",
+  "subtitles.gmm.entity.shadowlord.ambient": "Shadowlord murmurs",
+  "subtitles.gmm.entity.shadowlord.step": "Shadowlord steps",
+  "subtitles.gmm.entity.wing.flap": "Wings flap"
+}

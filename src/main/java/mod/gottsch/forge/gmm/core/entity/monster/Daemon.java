@@ -31,6 +31,7 @@ import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.function.Supplier;
+import mod.gottsch.forge.gmm.core.sound.GMMSounds;
 
 /**
  * Generalized from Dungeon Denizens. GMM owns no concrete firespout projectile, so
@@ -49,7 +50,7 @@ public class Daemon extends GMMMonster {
 	}
 
 	public static FireSpoutLauncher fireSpoutLauncher;
-	public static Supplier<SoundEvent> ambientSound;
+	public static Supplier<SoundEvent> ambientSound = () -> GMMSounds.DAEMON_AMBIENT.get();
 
 	private double flameParticlesTime;
 	private int particlesReset = 4;

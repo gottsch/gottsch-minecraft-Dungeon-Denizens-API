@@ -17,6 +17,7 @@ import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.function.Supplier;
+import mod.gottsch.forge.gmm.core.sound.GMMSounds;
 
 /**
  * The Beholder-kin flagship: casts a weighted mix of spells and can summon minions (incl. a rare
@@ -38,7 +39,7 @@ public class Beholder extends Beholderkin {
 	/** Consumer-supplied rare Daemon-summon target. */
 	public static EntityType<? extends Mob> summonDaemon;
 
-	public static Supplier<SoundEvent> ambientSound;
+	public static Supplier<SoundEvent> ambientSound = () -> GMMSounds.BEHOLDER_AMBIENT.get();
 
 	public Beholder(EntityType<? extends FlyingMob> entityType, Level level) {
 		super(entityType, level);

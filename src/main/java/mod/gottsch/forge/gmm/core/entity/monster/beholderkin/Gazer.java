@@ -17,6 +17,7 @@ import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.function.Supplier;
+import mod.gottsch.forge.gmm.core.sound.GMMSounds;
 
 /**
  * Generalized from Dungeon Denizens.
@@ -31,7 +32,7 @@ public class Gazer extends Beholderkin {
 	/** Consumer-supplied weighted list of minions Gazer can conjure. */
 	public static WeightedCollection<Double, EntityType<? extends Mob>> summonMobs;
 
-	public static Supplier<SoundEvent> ambientSound;
+	public static Supplier<SoundEvent> ambientSound = () -> GMMSounds.GAZER_AMBIENT.get();
 
 	public Gazer(EntityType<? extends FlyingMob> entityType, Level level) {
 		super(entityType, level);

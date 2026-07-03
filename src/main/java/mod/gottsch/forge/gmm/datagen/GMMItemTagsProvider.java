@@ -54,5 +54,22 @@ public class GMMItemTagsProvider extends ItemTagsProvider {
 		tag(GMMTags.Items.GHOUL_FOOD).add(Items.LEATHER);
 		tag(GMMTags.Items.GHOUL_FOOD).add(Items.RABBIT_HIDE);
 		tag(GMMTags.Items.GHOUL_FOOD).add(Items.FEATHER);
+
+		// SkeletonWarrior equipment pools: gmm ships sensible weak-vanilla defaults so the mob is
+		// functional standalone. gmm owns no items, so these are vanilla only (leather/gold armor,
+		// low-tier weapons, some iron); consumer mods add their own items to these tags additively.
+		tag(GMMTags.Items.SKELETON_WARRIOR_WEAPONS).add(
+				Items.WOODEN_SWORD, Items.WOODEN_AXE,
+				Items.STONE_SWORD, Items.STONE_AXE,
+				Items.GOLDEN_SWORD, Items.GOLDEN_AXE,
+				Items.IRON_SWORD, Items.IRON_AXE);
+		tag(GMMTags.Items.SKELETON_WARRIOR_HELMETS).add(
+				Items.LEATHER_HELMET, Items.GOLDEN_HELMET, Items.CHAINMAIL_HELMET, Items.IRON_HELMET);
+		tag(GMMTags.Items.SKELETON_WARRIOR_CHESTPLATES).add(
+				Items.LEATHER_CHESTPLATE, Items.GOLDEN_CHESTPLATE, Items.CHAINMAIL_CHESTPLATE);
+		tag(GMMTags.Items.SKELETON_WARRIOR_LEGGINGS).add(
+				Items.LEATHER_LEGGINGS, Items.GOLDEN_LEGGINGS, Items.CHAINMAIL_LEGGINGS);
+		tag(GMMTags.Items.SKELETON_WARRIOR_BOOTS).add(
+				Items.LEATHER_BOOTS, Items.GOLDEN_BOOTS, Items.CHAINMAIL_BOOTS);
 	}
 }
