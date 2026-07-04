@@ -28,6 +28,10 @@ public class GMMTags {
         // Orc weapon pool (consumer-populated)
         public static final TagKey<Item> ORC_WEAPONS = mod(GMM.MOD_ID, "orc/weapons");
 
+        // Equipment immune to the Acid Skeleton's on-hit corrosion. gmm ships diamond/netherite gear
+        // as the default; consumers can add their own corrosion-proof items additively.
+        public static final TagKey<Item> ACID_SKELETON_CORROSION_IMMUNE = mod(GMM.MOD_ID, "acid_skeleton/corrosion_immune");
+
         // Shadow spawn weapon pool (consumer-populated)
         public static final TagKey<Item> SHADOW_WEAPONS = mod(GMM.MOD_ID, "shadow/weapons");
         // Shadow-bane weapons: bypass the Shadow's metal resistance and deal bonus damage.

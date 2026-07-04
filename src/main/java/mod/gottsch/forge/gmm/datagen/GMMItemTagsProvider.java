@@ -71,5 +71,16 @@ public class GMMItemTagsProvider extends ItemTagsProvider {
 				Items.LEATHER_LEGGINGS, Items.GOLDEN_LEGGINGS, Items.CHAINMAIL_LEGGINGS);
 		tag(GMMTags.Items.SKELETON_WARRIOR_BOOTS).add(
 				Items.LEATHER_BOOTS, Items.GOLDEN_BOOTS, Items.CHAINMAIL_BOOTS);
+
+		// Orc weapon pool: ship weak-vanilla defaults so Orcs are armed standalone; consumers add more.
+		tag(GMMTags.Items.ORC_WEAPONS).add(Items.STONE_SWORD, Items.STONE_AXE);
+
+		// Acid Skeleton corrosion immunity: diamond gear resists the acid (netherite added too, since
+		// it's the higher tier — drop it if only diamond should be immune). Consumers add more.
+		tag(GMMTags.Items.ACID_SKELETON_CORROSION_IMMUNE).add(
+				Items.DIAMOND_HELMET, Items.DIAMOND_CHESTPLATE, Items.DIAMOND_LEGGINGS, Items.DIAMOND_BOOTS,
+				Items.DIAMOND_SWORD, Items.DIAMOND_AXE, Items.DIAMOND_PICKAXE, Items.DIAMOND_SHOVEL, Items.DIAMOND_HOE,
+				Items.NETHERITE_HELMET, Items.NETHERITE_CHESTPLATE, Items.NETHERITE_LEGGINGS, Items.NETHERITE_BOOTS,
+				Items.NETHERITE_SWORD, Items.NETHERITE_AXE, Items.NETHERITE_PICKAXE, Items.NETHERITE_SHOVEL, Items.NETHERITE_HOE);
 	}
 }

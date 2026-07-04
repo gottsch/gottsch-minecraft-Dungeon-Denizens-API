@@ -18,6 +18,7 @@
 package mod.gottsch.forge.gmm.core;
 
 import mod.gottsch.forge.gmm.core.config.GMMRegistries;
+import mod.gottsch.forge.gmm.core.particle.GMMParticles;
 import mod.gottsch.forge.gmm.core.sound.GMMSounds;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.common.Mod;
@@ -54,5 +55,6 @@ public class GMM {
         IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
         modEventBus.register(GMMRegistries.class);
         GMMSounds.register(modEventBus);
+        GMMParticles.register(modEventBus);
     }
 }

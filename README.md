@@ -54,6 +54,8 @@ Mob spawn gating and many behavior values (timings, probabilities, despawn rules
 
 Edit the JSON and run `/reload` — changes apply the next time a mob spawns. No recompiling, no mixins.
 
+You can also customize what GMM's monsters wield, eat, and respond to through its **tag system** — see the **[Tags Reference](docs/TAGS.md)** for the full list (weapon/armor pools, ghoul food, Headless ally alerts) and copy-paste datapack examples.
+
 ---
 
 ## For developers
@@ -61,7 +63,7 @@ Edit the JSON and run `/reload` — changes apply the next time a mob spawns. No
 GMM exists so dungeon-mob mods don't have to duplicate AI and rendering code. If you're building a mod that wants gottsch-style monsters:
 
 - Depend on GMM and register your own `EntityType`s pointing at its base classes
-- Contribute equipment, allies, and summon targets through GMM's tag system (`gmm:`-namespaced entity-type and item tags) instead of hardcoding cross-mod references
+- Contribute equipment, allies, and summon targets through GMM's tag system (`gmm:`-namespaced entity-type and item tags) instead of hardcoding cross-mod references — see the **[Tags Reference](docs/TAGS.md)**
 - Reuse GMM's models/renderers/textures, or extend its base classes for your own variants
 
 GMM never references a consumer mod's classes — all cross-mod coupling flows through tags, datapack config, or a small set of static hook points that consumers wire up (e.g. a mob's projectile launcher or ambient sound).
