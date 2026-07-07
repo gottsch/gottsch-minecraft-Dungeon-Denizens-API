@@ -41,6 +41,19 @@ public class GMMParticles {
 	public static final RegistryObject<SimpleParticleType> ACID_DRIP =
 			PARTICLES.register("acid_drip", () -> new SimpleParticleType(false) {});
 
+	/** A short-lived, additively-lit electric spark used for lightning arcs / crackle. */
+	public static final RegistryObject<SimpleParticleType> ELECTRIC_SPARK =
+			PARTICLES.register("electric_spark", () -> new SimpleParticleType(false) {});
+
+	/**
+	 * A flame "runner" for the Burning Skeleton's aura pulse: travels flat outward to a passed reach,
+	 * then bends upward. The outward direction + flat reach are carried in the spawn velocity args (see
+	 * {@code BurningAuraFlameParticle}). {@code true} = always show (a telegraph shouldn't be culled by
+	 * the client's particle-density setting).
+	 */
+	public static final RegistryObject<SimpleParticleType> BURNING_AURA =
+			PARTICLES.register("burning_aura", () -> new SimpleParticleType(true) {});
+
 	public static void register(IEventBus modEventBus) {
 		PARTICLES.register(modEventBus);
 	}

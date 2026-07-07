@@ -19,6 +19,8 @@ package mod.gottsch.forge.gmm.core.client;
 
 import mod.gottsch.forge.gmm.core.GMM;
 import mod.gottsch.forge.gmm.core.client.particle.AcidDripParticle;
+import mod.gottsch.forge.gmm.core.client.particle.BurningAuraFlameParticle;
+import mod.gottsch.forge.gmm.core.client.particle.ElectricSparkParticle;
 import mod.gottsch.forge.gmm.core.particle.GMMParticles;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.RegisterParticleProvidersEvent;
@@ -39,5 +41,7 @@ public class GMMClientSetup {
 	@SubscribeEvent
 	public static void onRegisterParticleProviders(RegisterParticleProvidersEvent event) {
 		event.registerSpriteSet(GMMParticles.ACID_DRIP.get(), AcidDripParticle.Provider::new);
+		event.registerSpriteSet(GMMParticles.ELECTRIC_SPARK.get(), ElectricSparkParticle.Provider::new);
+		event.registerSpriteSet(GMMParticles.BURNING_AURA.get(), BurningAuraFlameParticle.Provider::new);
 	}
 }

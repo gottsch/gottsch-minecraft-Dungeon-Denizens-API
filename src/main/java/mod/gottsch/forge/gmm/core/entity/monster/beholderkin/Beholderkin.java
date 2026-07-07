@@ -113,7 +113,8 @@ public abstract class Beholderkin extends GMMFlyingMonster {
             // cooldown regardless of criteria
             cooldownCount = Math.min(++this.cooldownCount, cooldownTime);
             if (cooldownCount >= cooldownTime) {
-                if (this.getAttackReachSqr(beholderkin.getTarget()) >= this.beholderkin.distanceToSqr(beholderkin.getTarget().getX(), beholderkin.getTarget().getY(), beholderkin.getTarget().getZ())) {
+                if (this.getAttackReachSqr(beholderkin.getTarget()) >= this.beholderkin.distanceToSqr(beholderkin.getTarget().getX(), beholderkin.getTarget().getY(), beholderkin.getTarget().getZ())
+                        && this.beholderkin.hasLineOfSight(beholderkin.getTarget())) {
                     this.beholderkin.doHurtTarget(beholderkin.getTarget());
                     this.cooldownCount = 0;
                 }
@@ -163,12 +164,21 @@ public abstract class Beholderkin extends GMMFlyingMonster {
             double y = this.beholderkin.getY() + (double)((random.nextFloat() * 2.0F - 1.0F) * 8.0F);
             double z = this.beholderkin.getZ() + (double)((random.nextFloat() * 2.0F - 1.0F) * 8.0F);
 
-            // TODO check that the pos is not in water or lava
-            if (this.beholderkin.level().isFluidAtPosition(new BlockPos((int)x, (int)y, (int)z), (fluidState) -> {
+            BlockPos targetPos = new BlockPos((int)x, (int)y, (int)z);
+
+            // Skip targets inside a fluid: picking one would steer the mob into water/lava.
+            if (this.beholderkin.level().isFluidAtPosition(targetPos, (fluidState) -> {
                 return fluidState.isSourceOfType(Fluids.WATER) || fluidState.isSourceOfType(Fluids.LAVA);
             })) {
                 return;
-            };
+            }
+
+            // Skip targets inside a solid block: the ground scan below would treat that block as the
+            // "ground" and hand back a target embedded in terrain, which MoveControl.canReach can never
+            // reach -- so the mob parks in WAIT and hovers stuck. Only float toward open air.
+            if (!this.beholderkin.level().getBlockState(targetPos).isAir()) {
+                return;
+            }
 
             // find ground below mob. isAir() also covers cave air and void air, so this works
             // underground (== Blocks.AIR did not), and the minBuildHeight guard bounds the loop.
@@ -178,7 +188,9 @@ public abstract class Beholderkin extends GMMFlyingMonster {
                 groundY--;
             }
 
-            y = Math.min(y, groundY + getMaxFloatHeight());
+            // Keep the target within [ground+1, ground+maxFloatHeight]: near the ground but never
+            // inside it. (x/y/z is guaranteed air here, so groundY+1 is always <= the original y.)
+            y = Mth.clamp(y, groundY + 1, groundY + getMaxFloatHeight());
             this.beholderkin.getMoveControl().setWantedPosition(x, y, z, 1.0D);
         }
 
@@ -216,8 +228,8 @@ public abstract class Beholderkin extends GMMFlyingMonster {
                 LivingEntity livingEntity = this.beholderkin.getTarget();
                 if (livingEntity.distanceToSqr(this.beholderkin) < 4096.0D) {
                     double deltaX = livingEntity.getX() - beholderkin.getX();
-                    double deltaY = livingEntity.getZ() - beholderkin.getZ();
-                    beholderkin.setYRot(-((float)Mth.atan2(deltaX, deltaY)) * (180F / (float)Math.PI));
+                    double deltaZ = livingEntity.getZ() - beholderkin.getZ();
+                    beholderkin.setYRot(-((float)Mth.atan2(deltaX, deltaZ)) * (180F / (float)Math.PI));
                     beholderkin.yBodyRot = beholderkin.getYRot();
                 }
             }

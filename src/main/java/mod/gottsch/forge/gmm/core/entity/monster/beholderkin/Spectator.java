@@ -37,8 +37,6 @@ public class Spectator extends Beholderkin {
 
 	public static Supplier<SoundEvent> ambientSound = () -> GMMSounds.SPECTATOR_AMBIENT.get();
 
-	private int lifespan;
-
 	public Spectator(EntityType<? extends FlyingMob> entityType, Level level) {
 		super(entityType, level);
 		this.moveControl = new BeholderkinMoveControl(this);

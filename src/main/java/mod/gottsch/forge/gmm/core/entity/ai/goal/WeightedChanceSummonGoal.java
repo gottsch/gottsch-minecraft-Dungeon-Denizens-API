@@ -10,7 +10,6 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.levelgen.Heightmap;
 
 /**
@@ -73,11 +72,15 @@ public class WeightedChanceSummonGoal extends ChanceSummonGoal {
                             // mob is above ground
                             y = height;
                         } else {
-                            // find ground below mob
+                            // find ground below mob. isAir() also covers cave air and void air, so this
+                            // works underground (== Blocks.AIR did not).
                             y = mob.blockPosition().below().getY();
-                            while (level.getBlockState(mob.blockPosition().atY(y)).getBlock() == Blocks.AIR) {
+                            while (level.getBlockState(mob.blockPosition().atY(y)).isAir()) {
                                 y--;
                                 if (Math.abs(mob.blockPosition().getY() - y) > 15) {
+                                    // no ground within range (e.g. hovering high above terrain); reset the
+                                    // cooldown so we don't rescan every tick and never summon.
+                                    this.cooldownCount = 0;
                                     return;
                                 }
                             }

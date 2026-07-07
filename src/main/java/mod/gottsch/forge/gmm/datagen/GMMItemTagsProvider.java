@@ -75,6 +75,10 @@ public class GMMItemTagsProvider extends ItemTagsProvider {
 		// Orc weapon pool: ship weak-vanilla defaults so Orcs are armed standalone; consumers add more.
 		tag(GMMTags.Items.ORC_WEAPONS).add(Items.STONE_SWORD, Items.STONE_AXE);
 
+		// Skeleton Champion weapon pool: an elite leader carries elite steel — diamond + netherite
+		// swords by default. Consumers add their own (fancier) weapons additively.
+		tag(GMMTags.Items.SKELETON_CHAMPION_WEAPONS).add(Items.DIAMOND_SWORD, Items.NETHERITE_SWORD);
+
 		// Acid Skeleton corrosion immunity: diamond gear resists the acid (netherite added too, since
 		// it's the higher tier — drop it if only diamond should be immune). Consumers add more.
 		tag(GMMTags.Items.ACID_SKELETON_CORROSION_IMMUNE).add(

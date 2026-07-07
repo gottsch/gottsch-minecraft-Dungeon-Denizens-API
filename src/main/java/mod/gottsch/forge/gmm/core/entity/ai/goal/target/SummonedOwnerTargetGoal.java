@@ -1,6 +1,7 @@
 package mod.gottsch.forge.gmm.core.entity.ai.goal.target;
 
 import mod.gottsch.forge.gmm.core.entity.monster.IGMMMonster;
+import mod.gottsch.forge.gmm.core.entity.ownership.OwnershipType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.goal.Goal;
@@ -31,6 +32,11 @@ public class SummonedOwnerTargetGoal extends TargetGoal {
 
     @Override
     public boolean canUse() {
+        // only mobs that are actually beholden to their owner assist it; a REINFORCEMENT targets freely.
+        OwnershipType type = this.summonable.getOwnershipType();
+        if (type != OwnershipType.SUMMONED && type != OwnershipType.THRALL) {
+            return false;
+        }
         LivingEntity owner = this.summonable.getSummonedOwner();
         LivingEntity target = this.mob.getTarget();
         if (owner == null || (target != null && !target.equals(owner))) {

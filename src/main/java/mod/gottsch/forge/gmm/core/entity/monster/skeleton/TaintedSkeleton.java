@@ -54,7 +54,8 @@ public class TaintedSkeleton extends GMMMonster {
     @Override
     protected void registerGoals() {
         this.goalSelector.addGoal(1, new FloatGoal(this));
-        this.goalSelector.addGoal(2, new MeleeAttackGoal(this, 1.0D, false));
+        // pursue at 1.2x so it quickly closes on the target (the threat is dying at close range)
+        this.goalSelector.addGoal(2, new MeleeAttackGoal(this, 1.2D, false));
         this.goalSelector.addGoal(5, new WaterAvoidingRandomStrollGoal(this, 1.0D));
         this.goalSelector.addGoal(6, new LookAtPlayerGoal(this, Player.class, 8.0F));
         this.goalSelector.addGoal(6, new RandomLookAroundGoal(this));
@@ -66,7 +67,8 @@ public class TaintedSkeleton extends GMMMonster {
     public static AttributeSupplier.Builder createAttributes() {
         return Monster.createMonsterAttributes()
                 .add(Attributes.MAX_HEALTH, 14.0D)
-                .add(Attributes.MOVEMENT_SPEED, 0.28D)
+                // a touch quicker than a vanilla skeleton — it rushes to close the distance and detonate
+                .add(Attributes.MOVEMENT_SPEED, 0.30D)
                 .add(Attributes.ATTACK_DAMAGE, 2.0D);
     }
 

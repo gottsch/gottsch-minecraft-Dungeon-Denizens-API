@@ -28,6 +28,11 @@ public class GMMTags {
         // Orc weapon pool (consumer-populated)
         public static final TagKey<Item> ORC_WEAPONS = mod(GMM.MOD_ID, "orc/weapons");
 
+        // Skeleton Champion weapon pool: the elite leader picks its main-hand weapon from this on spawn.
+        // gmm ships diamond + netherite swords as the default (an elite carries elite steel); consumers
+        // add their own weapons additively.
+        public static final TagKey<Item> SKELETON_CHAMPION_WEAPONS = mod(GMM.MOD_ID, "skeleton_champion/weapons");
+
         // Equipment immune to the Acid Skeleton's on-hit corrosion. gmm ships diamond/netherite gear
         // as the default; consumers can add their own corrosion-proof items additively.
         public static final TagKey<Item> ACID_SKELETON_CORROSION_IMMUNE = mod(GMM.MOD_ID, "acid_skeleton/corrosion_immune");
@@ -56,6 +61,9 @@ public class GMMTags {
         public static final TagKey<EntityType<?>> HEADLESS_HURT_ALLIES = mod(GMM.MOD_ID, "headless/hurt_allies");
         // mobs a Headless alerts when it acquires a target
         public static final TagKey<EntityType<?>> HEADLESS_TARGET_ALLIES = mod(GMM.MOD_ID, "headless/target_allies");
+
+        // mobs a Skeleton Champion rallies (buffs) while alive — consumers add their skeleton types
+        public static final TagKey<EntityType<?>> SKELETON_CHAMPION_RALLY_ALLIES = mod(GMM.MOD_ID, "skeleton_champion/rally_allies");
 
         public static TagKey<EntityType<?>> mod(String domain, String path) {
             return TagKey.create(Registries.ENTITY_TYPE, new ResourceLocation(domain, path));

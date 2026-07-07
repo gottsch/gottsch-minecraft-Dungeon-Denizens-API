@@ -1,12 +1,12 @@
 package mod.gottsch.forge.gmm.core.entity.monster;
 
+import mod.gottsch.forge.gmm.core.entity.ownership.Ownership;
+import mod.gottsch.forge.gmm.core.entity.ownership.OwnershipType;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
-import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.players.OldUsersConverter;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.OwnableEntity;
@@ -28,6 +28,11 @@ public abstract class GMMMonster extends Monster implements OwnableEntity, IGMMM
      */
     protected static final EntityDataAccessor<Optional<UUID>> DATA_OWNERUUID_ID = SynchedEntityData.defineId(GMMMonster.class, EntityDataSerializers.OPTIONAL_UUID);
 
+    // ownership kind + summon lifespan are server-side only (see Ownership); the owner UUID above is
+    // synced because it predates this and may be wanted client-side.
+    private OwnershipType ownershipType = OwnershipType.NONE;
+    private int remainingLifespan = -1;
+
     protected GMMMonster(EntityType<? extends Monster> entityType, Level level) {
         super(entityType, level);
     }
@@ -46,29 +51,29 @@ public abstract class GMMMonster extends Monster implements OwnableEntity, IGMMM
     }
 
     @Override
+    protected void customServerAiStep() {
+        super.customServerAiStep();
+        Ownership.tickLifespan(this);
+    }
+
+    @Override
     public void addAdditionalSaveData(CompoundTag tag) {
         super.addAdditionalSaveData(tag);
-        if (this.getOwnerUUID() != null) {
-            // NOTE uses vanilla naming "Owner"
-            tag.putUUID("Owner", this.getOwnerUUID());
-        }
+        Ownership.save(tag, this);
     }
 
     @Override
     public void readAdditionalSaveData(CompoundTag tag) {
         super.readAdditionalSaveData(tag);
-        UUID uuid;
-        if (tag.hasUUID("Owner")) {
-            uuid = tag.getUUID("Owner");
-        } else {
-            String s = tag.getString("Owner");
-            uuid = OldUsersConverter.convertMobOwnerIfNecessary(this.getServer(), s);
-        }
-
-        if (uuid != null) {
-            try {
-                this.setOwnerUUID(uuid);
-            } catch (Throwable throwable) {
+        Ownership.load(tag, this);
+        // legacy fallback: a pre-UUID "Owner" stored as a player name string.
+        if (getOwnerUUID() == null && tag.contains(Ownership.TAG_OWNER)) {
+            UUID uuid = OldUsersConverter.convertMobOwnerIfNecessary(this.getServer(), tag.getString(Ownership.TAG_OWNER));
+            if (uuid != null) {
+                try {
+                    this.setOwnerUUID(uuid);
+                } catch (Throwable throwable) {
+                }
             }
         }
     }
@@ -80,8 +85,28 @@ public abstract class GMMMonster extends Monster implements OwnableEntity, IGMMM
     }
 
     @Override
-    public void setOwnerUUID(@Nullable UUID p_21817_) {
-        this.entityData.set(DATA_OWNERUUID_ID, Optional.ofNullable(p_21817_));
+    public void setOwnerUUID(@Nullable UUID uuid) {
+        this.entityData.set(DATA_OWNERUUID_ID, Optional.ofNullable(uuid));
+    }
+
+    @Override
+    public OwnershipType getOwnershipType() {
+        return ownershipType;
+    }
+
+    @Override
+    public void setOwnershipType(OwnershipType type) {
+        this.ownershipType = type == null ? OwnershipType.NONE : type;
+    }
+
+    @Override
+    public int getRemainingLifespan() {
+        return remainingLifespan;
+    }
+
+    @Override
+    public void setRemainingLifespan(int ticks) {
+        this.remainingLifespan = ticks;
     }
 
     /**
@@ -92,20 +117,6 @@ public abstract class GMMMonster extends Monster implements OwnableEntity, IGMMM
      */
     @Nullable
     public LivingEntity getSummonedOwner() {
-        UUID uuid = getOwnerUUID();
-        if (uuid == null) {
-            return null;
-        }
-        Player player = this.level().getPlayerByUUID(uuid);
-        if (player != null) {
-            return player;
-        }
-        if (this.level() instanceof ServerLevel serverLevel) {
-            Entity entity = serverLevel.getEntity(uuid);
-            if (entity instanceof LivingEntity living) {
-                return living;
-            }
-        }
-        return null;
+        return Ownership.resolveOwner(this);
     }
 }

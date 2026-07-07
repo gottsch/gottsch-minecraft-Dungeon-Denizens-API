@@ -1,6 +1,9 @@
 package mod.gottsch.forge.gmm.core.entity.ai.goal;
 
+import mod.gottsch.forge.gmm.core.config.MobConfigHelper;
 import mod.gottsch.forge.gmm.core.entity.monster.IGMMMonster;
+import mod.gottsch.forge.gmm.core.entity.ownership.Ownership;
+import mod.gottsch.forge.gmm.core.entity.ownership.OwnershipType;
 import mod.gottsch.forge.gottschcore.spatial.Coords;
 import mod.gottsch.forge.gottschcore.spatial.ICoords;
 import mod.gottsch.forge.gottschcore.world.WorldInfo;
@@ -20,6 +23,9 @@ import net.minecraftforge.event.ForgeEventFactory;
  *
  */
 public abstract class SummonGoal extends Goal {
+	/** Default lifespan (ticks) of a summoned mob before it is unsummoned; overridable via mob_config. */
+	protected static final int DEFAULT_SUMMON_LIFESPAN = 2400;
+
 	protected int cooldownTime;
 	protected int cooldownCount;
 	
@@ -62,7 +68,10 @@ public abstract class SummonGoal extends Goal {
 					mob.setPos((double)spawnX, (double)spawnY, (double)spawnZ);
 					mob.setTarget(target);
 					if (mob instanceof IGMMMonster gmmMob && gmmMob.canSummonedHaveOwner()) {
-						gmmMob.setOwnerUUID(owner.getUUID());
+						// summoned minion: owned by the summoner and given a lifespan, after which it is
+						// unsummoned (Ownership.tickLifespan). Lifespan is a property of the summoned mob.
+						int lifespan = (int) MobConfigHelper.get(mob).number("summonLifespan", DEFAULT_SUMMON_LIFESPAN);
+						Ownership.stampOwnership(mob, owner, OwnershipType.SUMMONED, lifespan);
 					}
 
 					ForgeEventFactory.onFinalizeSpawn(mob, level, level.getCurrentDifficultyAt(spawnCoords.toPos()), MobSpawnType.MOB_SUMMONED, (SpawnGroupData)null, (CompoundTag)null);

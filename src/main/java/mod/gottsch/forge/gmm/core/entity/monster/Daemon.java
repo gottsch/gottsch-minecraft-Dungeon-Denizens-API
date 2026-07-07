@@ -5,7 +5,6 @@ import mod.gottsch.forge.gmm.core.entity.ai.goal.target.SummonedOwnerTargetGoal;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.util.RandomSource;
@@ -54,7 +53,6 @@ public class Daemon extends GMMMonster {
 
 	private double flameParticlesTime;
 	private int particlesReset = 4;
-	private int lifespanCount = 0;
 
 	public Daemon(EntityType<? extends Monster> entityType, Level level) {
 		super(entityType, level);
@@ -112,30 +110,15 @@ public class Daemon extends GMMMonster {
 			}
 			flameParticlesTime++;
 			flameParticlesTime = flameParticlesTime % 360;
-		} else if (!this.level().isClientSide) {
-			// if daemon has a owner
-			if (getSummonedOwner() != null) {
-				lifespanCount++;
-			}
-			if (lifespanCount >= getSummonedLifespan()) {
-				this.discard();
-			}
 		}
+		// summon lifespan is handled generically via Ownership.tickLifespan (customServerAiStep) for
+		// SUMMONED daemons; a naturally-spawned daemon is OwnershipType.NONE and never expires.
 		super.aiStep();
 	}
 
 	@Override
-	public void addAdditionalSaveData(CompoundTag tag) {
-		super.addAdditionalSaveData(tag);
-		tag.putInt("lifespanCount", this.lifespanCount);
-	}
-
-	@Override
-	public void readAdditionalSaveData(CompoundTag tag) {
-		super.readAdditionalSaveData(tag);
-		if (tag.contains("lifespanCount")) {
-			this.lifespanCount = tag.getInt("lifespanCount");
-		}
+	public boolean canSummonedHaveOwner() {
+		return true;
 	}
 
 	@Override
@@ -147,10 +130,6 @@ public class Daemon extends GMMMonster {
 	@Override
 	protected SoundEvent getAmbientSound() {
 		return ambientSound != null ? ambientSound.get() : null;
-	}
-
-	public int getSummonedLifespan() {
-		return (int) MobConfigHelper.get(this).number("summonedLifespan", 1200);
 	}
 
 	/**
