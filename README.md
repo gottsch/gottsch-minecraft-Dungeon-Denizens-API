@@ -52,7 +52,7 @@ Mob spawn gating and many behavior values (timings, probabilities, despawn rules
 }
 ```
 
-Edit the JSON and run `/reload` — changes apply the next time a mob spawns. No recompiling, no mixins.
+Edit the JSON and run `/reload` — changes apply the next time a mob spawns. No recompiling, no mixins. See the **[Mob Config Reference](docs/CONFIG.md)** for every key each mob reads, its default, and what it controls.
 
 You can also customize what GMM's monsters wield, eat, and respond to through its **tag system** — see the **[Tags Reference](docs/TAGS.md)** for the full list (weapon/armor pools, ghoul food, Headless ally alerts) and copy-paste datapack examples.
 

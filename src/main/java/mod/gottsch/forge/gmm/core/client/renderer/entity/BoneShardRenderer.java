@@ -42,6 +42,11 @@ public class BoneShardRenderer extends EntityRenderer<BoneShard> {
 		// tumble on the long axis — frozen once the shard sticks/stops (spinTicks stops advancing)
 		float spin = (entity.getSpinTicks() + (entity.isStuck() ? 0.0F : partialTick)) * 40.0F;
 		poseStack.mulPose(Axis.XP.rotationDegrees(spin));
+		// caller-supplied chunkiness (default 1.0); lets Bloody Bones throw bigger limb pieces.
+		float scale = entity.getScale();
+		if (scale != 1.0F) {
+			poseStack.scale(scale, scale, scale);
+		}
 		BoneShardModel model = this.models[Math.floorMod(entity.getVariant(), this.models.length)];
 		VertexConsumer vertexConsumer = buffer.getBuffer(model.renderType(TEXTURE));
 		model.renderToBuffer(poseStack, vertexConsumer, packedLight, OverlayTexture.NO_OVERLAY, 1.0F, 1.0F, 1.0F, 1.0F);

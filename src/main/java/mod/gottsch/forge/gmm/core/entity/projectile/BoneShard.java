@@ -26,6 +26,10 @@ public class BoneShard extends AbstractArrow {
 
     private static final EntityDataAccessor<Byte> DATA_VARIANT =
             SynchedEntityData.defineId(BoneShard.class, EntityDataSerializers.BYTE);
+    // render scale — 1.0 = default shard. Lets a caller (e.g. Bloody Bones' flung limbs) throw chunkier
+    // pieces without a separate model; the renderer multiplies by this. Does not affect physics/damage.
+    private static final EntityDataAccessor<Float> DATA_SCALE =
+            SynchedEntityData.defineId(BoneShard.class, EntityDataSerializers.FLOAT);
 
     /** Increments only while airborne; the renderer uses it so a stuck/stopped shard freezes. */
     private int spinTicks;
@@ -45,6 +49,7 @@ public class BoneShard extends AbstractArrow {
     protected void defineSynchedData() {
         super.defineSynchedData();
         this.entityData.define(DATA_VARIANT, (byte) 0);
+        this.entityData.define(DATA_SCALE, 1.0F);
     }
 
     public void setVariant(byte variant) {
@@ -53,6 +58,14 @@ public class BoneShard extends AbstractArrow {
 
     public int getVariant() {
         return this.entityData.get(DATA_VARIANT);
+    }
+
+    public void setScale(float scale) {
+        this.entityData.set(DATA_SCALE, scale);
+    }
+
+    public float getScale() {
+        return this.entityData.get(DATA_SCALE);
     }
 
     public int getSpinTicks() {
@@ -82,11 +95,15 @@ public class BoneShard extends AbstractArrow {
     public void addAdditionalSaveData(CompoundTag tag) {
         super.addAdditionalSaveData(tag);
         tag.putByte("Variant", (byte) this.getVariant());
+        tag.putFloat("Scale", this.getScale());
     }
 
     @Override
     public void readAdditionalSaveData(CompoundTag tag) {
         super.readAdditionalSaveData(tag);
         this.setVariant(tag.getByte("Variant"));
+        if (tag.contains("Scale")) {
+            this.setScale(tag.getFloat("Scale"));
+        }
     }
 }

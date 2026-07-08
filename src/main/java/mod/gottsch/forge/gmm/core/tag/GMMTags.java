@@ -69,4 +69,21 @@ public class GMMTags {
             return TagKey.create(Registries.ENTITY_TYPE, new ResourceLocation(domain, path));
         }
     }
+
+    /**
+     * Damage-type tags. gmm owns the KEYS; the JSON is optional — a missing tag simply matches
+     * nothing (so no datagen provider is required to ship a sensible default).
+     */
+    public static class DamageTypes {
+
+        // Damage types that "kill the bones right" — a true, un-resurrectable death for Bloody Bones.
+        // Fire/lava is handled intrinsically in code; drop entries here (e.g. a pack's holy/smite
+        // damage type) to add more with no code change.
+        public static final TagKey<net.minecraft.world.damagesource.DamageType> BLOODY_BONES_TRUE_KILL =
+                mod(GMM.MOD_ID, "bloody_bones/true_kill");
+
+        public static TagKey<net.minecraft.world.damagesource.DamageType> mod(String domain, String path) {
+            return TagKey.create(Registries.DAMAGE_TYPE, new ResourceLocation(domain, path));
+        }
+    }
 }

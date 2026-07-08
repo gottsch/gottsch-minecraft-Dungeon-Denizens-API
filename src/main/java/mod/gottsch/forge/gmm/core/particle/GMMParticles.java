@@ -41,6 +41,10 @@ public class GMMParticles {
 	public static final RegistryObject<SimpleParticleType> ACID_DRIP =
 			PARTICLES.register("acid_drip", () -> new SimpleParticleType(false) {});
 
+	/** A blood droplet — same drip behaviour as {@link #ACID_DRIP}, red teardrop sprite (Bloody Bones). */
+	public static final RegistryObject<SimpleParticleType> BLOOD_DRIP =
+			PARTICLES.register("blood_drip", () -> new SimpleParticleType(false) {});
+
 	/** A short-lived, additively-lit electric spark used for lightning arcs / crackle. */
 	public static final RegistryObject<SimpleParticleType> ELECTRIC_SPARK =
 			PARTICLES.register("electric_spark", () -> new SimpleParticleType(false) {});

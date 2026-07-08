@@ -41,6 +41,8 @@ public class GMMClientSetup {
 	@SubscribeEvent
 	public static void onRegisterParticleProviders(RegisterParticleProvidersEvent event) {
 		event.registerSpriteSet(GMMParticles.ACID_DRIP.get(), AcidDripParticle.Provider::new);
+		// blood drip reuses the acid-drip behaviour verbatim, just a red teardrop sprite.
+		event.registerSpriteSet(GMMParticles.BLOOD_DRIP.get(), AcidDripParticle.Provider::new);
 		event.registerSpriteSet(GMMParticles.ELECTRIC_SPARK.get(), ElectricSparkParticle.Provider::new);
 		event.registerSpriteSet(GMMParticles.BURNING_AURA.get(), BurningAuraFlameParticle.Provider::new);
 	}

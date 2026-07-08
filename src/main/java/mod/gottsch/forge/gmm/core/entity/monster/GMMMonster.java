@@ -1,5 +1,7 @@
 package mod.gottsch.forge.gmm.core.entity.monster;
 
+import mod.gottsch.forge.gmm.core.config.MobConfig;
+import mod.gottsch.forge.gmm.core.config.MobConfigHelper;
 import mod.gottsch.forge.gmm.core.entity.ownership.Ownership;
 import mod.gottsch.forge.gmm.core.entity.ownership.OwnershipType;
 import net.minecraft.nbt.CompoundTag;
@@ -7,12 +9,19 @@ import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.players.OldUsersConverter;
+import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.MobSpawnType;
 import net.minecraft.world.entity.OwnableEntity;
+import net.minecraft.world.entity.SpawnGroupData;
+import net.minecraft.world.entity.ai.attributes.Attribute;
+import net.minecraft.world.entity.ai.attributes.AttributeInstance;
+import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.ServerLevelAccessor;
 
 import javax.annotation.Nullable;
 import java.util.Optional;
@@ -54,6 +63,52 @@ public abstract class GMMMonster extends Monster implements OwnableEntity, IGMMM
     protected void customServerAiStep() {
         super.customServerAiStep();
         Ownership.tickLifespan(this);
+    }
+
+    /**
+     * Every GMM monster reads optional vanilla-attribute overrides from its own {@code gmm:mob_config}
+     * entry, applied on top of whatever {@code createAttributes()} set. A key is only touched when the
+     * config explicitly sets it, so a mob with no overrides behaves exactly as before. Subclasses that
+     * already override {@code finalizeSpawn} pick this up automatically as long as they call
+     * {@code super.finalizeSpawn(...)}, which all of GMM's mobs do.
+     */
+    @Override
+    public SpawnGroupData finalizeSpawn(ServerLevelAccessor level, DifficultyInstance difficulty,
+                                         MobSpawnType spawnType, @Nullable SpawnGroupData spawnGroupData,
+                                         @Nullable CompoundTag tag) {
+        spawnGroupData = super.finalizeSpawn(level, difficulty, spawnType, spawnGroupData, tag);
+        applyConfigAttributes(MobConfigHelper.get(level, EntityType.getKey(this.getType())));
+        return spawnGroupData;
+    }
+
+    /**
+     * Overwrites an attribute's base value with the config entry when present, leaving the
+     * code-side {@code createAttributes()} default untouched otherwise. Max health also heals the
+     * mob to its (possibly new) max, since this only ever runs once, at spawn.
+     */
+    private void applyConfigAttributes(MobConfig config) {
+        applyAttribute(Attributes.MAX_HEALTH, config, "maxHealth", true);
+        applyAttribute(Attributes.MOVEMENT_SPEED, config, "movementSpeed", false);
+        applyAttribute(Attributes.ATTACK_DAMAGE, config, "attackDamage", false);
+        applyAttribute(Attributes.ATTACK_KNOCKBACK, config, "attackKnockback", false);
+        applyAttribute(Attributes.KNOCKBACK_RESISTANCE, config, "knockbackResistance", false);
+        applyAttribute(Attributes.ARMOR, config, "armor", false);
+        applyAttribute(Attributes.ARMOR_TOUGHNESS, config, "armorToughness", false);
+    }
+
+    private void applyAttribute(Attribute attribute, MobConfig config, String key, boolean healToFull) {
+        Double value = config.properties().get(key);
+        if (value == null) {
+            return;
+        }
+        AttributeInstance instance = this.getAttribute(attribute);
+        if (instance == null) {
+            return;
+        }
+        instance.setBaseValue(value);
+        if (healToFull) {
+            this.setHealth(this.getMaxHealth());
+        }
     }
 
     @Override
