@@ -27,6 +27,12 @@ import mod.gottsch.forge.gmm.core.sound.GMMSounds;
  * A winged humanoid that walks on the ground and launches into flight to close
  * on distant targets, then lands to melee. Flight behaviour lives in the
  * {@link WingedHumanoid} base + the volant goal package.
+ * <p>
+ * Currently always active — no "looks like an inert stone statue until approached" disguise (that's
+ * the classic gargoyle trope, but it isn't built here yet). If that ever gets added, {@code Mimic}'s
+ * {@code GatedGoal} wrapper (`core/entity/monster/mimic/Mimic.java`) is the tool for gating every goal
+ * on a dormant/active flag without a bespoke subclass per goal — same shape as the Mimic ambush and
+ * Gray Ooze's camouflage, just a new trigger condition (proximity, presumably, rather than hit/interact).
  *
  * @author Mark Gottschling on July 3, 2025
  */

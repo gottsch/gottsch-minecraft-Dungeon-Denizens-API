@@ -96,7 +96,7 @@ public class AcidSkeleton extends GMMMonster {
             ItemStack stack = target.getItemBySlot(slot);
             // skip empty, non-damageable, and corrosion-immune (e.g. diamond) gear
             if (!stack.isEmpty() && stack.isDamageableItem()
-                    && !stack.is(GMMTags.Items.ACID_SKELETON_CORROSION_IMMUNE)) {
+                    && !stack.is(GMMTags.Items.CORROSION_IMMUNE)) {
                 damageable.add(slot);
             }
         }

@@ -1,8 +1,16 @@
 package mod.gottsch.forge.gmm.core.entity.ownership;
 
 import mod.gottsch.forge.gmm.core.capability.GMMCapabilities;
+import mod.gottsch.forge.gmm.core.entity.ai.goal.target.ThrallAttackOrderGoal;
+import mod.gottsch.forge.gmm.core.entity.ai.goal.thrall.ThrallFollowOwnerGoal;
+import mod.gottsch.forge.gmm.core.entity.ai.goal.thrall.ThrallGuardGoal;
+import mod.gottsch.forge.gmm.core.entity.ai.goal.thrall.ThrallStayGoal;
+import mod.gottsch.forge.gmm.core.entity.monster.IGMMMonster;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.NbtUtils;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.entity.Entity;
@@ -12,6 +20,9 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 
 import javax.annotation.Nullable;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -31,6 +42,8 @@ public final class Ownership {
     public static final String TAG_OWNER = "Owner";
     public static final String TAG_TYPE = "OwnershipType";
     public static final String TAG_LIFESPAN = "SummonLifespan";
+    public static final String TAG_THRALL_ORDER = "ThrallOrder";
+    public static final String TAG_GUARD_POS = "GuardPos";
 
     /** No-op view returned for entities that can't be owned (players, non-living), so callers never NPE. */
     private static final IOwnable NULL = new IOwnable() {
@@ -40,6 +53,10 @@ public final class Ownership {
         @Override public void setOwnershipType(OwnershipType type) { }
         @Override public int getRemainingLifespan() { return -1; }
         @Override public void setRemainingLifespan(int ticks) { }
+        @Override public ThrallOrder getThrallOrder() { return ThrallOrder.FOLLOW; }
+        @Override public void setThrallOrder(ThrallOrder order) { }
+        @Override public BlockPos getGuardPos() { return null; }
+        @Override public void setGuardPos(BlockPos pos) { }
     };
 
     private Ownership() { }
@@ -96,6 +113,81 @@ public final class Ownership {
     }
 
     /**
+     * Enthralls {@code target}: stamps it as a permanent {@link OwnershipType#THRALL} of
+     * {@code owner} with a default standing order of {@link ThrallOrder#FOLLOW}. The <b>owner</b> is
+     * always a mob (e.g. a Beholder enthralling a zombie) -- there is no player-facing enthrall path.
+     * <p>
+     * The first time a mob is enthralled, the reusable Thrall AI goals ({@link ThrallStayGoal},
+     * {@link ThrallGuardGoal}, {@link ThrallFollowOwnerGoal}, {@link ThrallAttackOrderGoal}) are added
+     * directly to its {@code goalSelector}/{@code targetSelector}. This works for any {@link Mob} --
+     * GMM's own or a vanilla/other-mod one -- since goal injection needs no GMM interface on the
+     * target; re-enthralling an existing thrall (e.g. a second cast) just re-stamps the owner without
+     * adding duplicate goals.
+     */
+    public static void enthrall(Mob target, LivingEntity owner) {
+        boolean alreadyThrall = of(target).getOwnershipType() == OwnershipType.THRALL;
+        stampOwnership(target, owner, OwnershipType.THRALL, -1);
+        IOwnable ownable = of(target);
+        ownable.setThrallOrder(ThrallOrder.FOLLOW);
+        ownable.setGuardPos(null);
+        if (owner instanceof IGMMMonster enthraller && !enthraller.getThralls().contains(target.getUUID())) {
+            enthraller.getThralls().add(target.getUUID());
+        }
+        if (!alreadyThrall) {
+            target.goalSelector.addGoal(1, new ThrallStayGoal(target));
+            target.goalSelector.addGoal(2, new ThrallGuardGoal(target, 1.0D));
+            target.goalSelector.addGoal(3, new ThrallFollowOwnerGoal(target, 1.0D));
+            target.targetSelector.addGoal(1, new ThrallAttackOrderGoal(target));
+        }
+    }
+
+    /**
+     * Resolves an owner's thrall list ({@link IGMMMonster#getThralls()}) to live {@link Mob}
+     * references, pruning any UUID that no longer resolves to a living mob (e.g. it died) from the
+     * owner's list as a side effect. Returns an empty list for a non-{@link IGMMMonster} owner or off
+     * the server thread. Note: a thrall in an unloaded chunk is indistinguishable from a dead one here
+     * and will be (harmlessly) pruned too -- same caveat vanilla has for any UUID-keyed entity list.
+     */
+    public static List<Mob> getLiveThralls(LivingEntity owner) {
+        if (!(owner instanceof IGMMMonster enthraller) || !(owner.level() instanceof ServerLevel serverLevel)) {
+            return List.of();
+        }
+        List<Mob> live = new ArrayList<>();
+        Iterator<UUID> iterator = enthraller.getThralls().iterator();
+        while (iterator.hasNext()) {
+            Entity entity = serverLevel.getEntity(iterator.next());
+            if (entity instanceof Mob mob && mob.isAlive()) {
+                live.add(mob);
+            } else {
+                iterator.remove();
+            }
+        }
+        return live;
+    }
+
+    /** Issues a standing {@link ThrallOrder#FOLLOW}/{@link ThrallOrder#STAY} order to a thrall. */
+    public static void issueOrder(Mob thrall, ThrallOrder order) {
+        of(thrall).setThrallOrder(order == null ? ThrallOrder.FOLLOW : order);
+    }
+
+    /** Orders a thrall to hold {@code pos}, returning to it once idle. */
+    public static void issueGuardOrder(Mob thrall, BlockPos pos) {
+        IOwnable ownable = of(thrall);
+        ownable.setGuardPos(pos);
+        ownable.setThrallOrder(ThrallOrder.GUARD);
+    }
+
+    /**
+     * Orders a thrall to pursue and fight a specific target, overriding whatever it (or its owner)
+     * was doing. One-shot: {@link ThrallAttackOrderGoal} reverts the order to FOLLOW once the target
+     * dies or is otherwise lost.
+     */
+    public static void issueAttackOrder(Mob thrall, LivingEntity target) {
+        of(thrall).setThrallOrder(ThrallOrder.ATTACK);
+        thrall.setTarget(target);
+    }
+
+    /**
      * Server-tick hook for a summoned mob's lifespan: counts down and unsummons at expiry. A negative
      * lifespan means "permanent" and is left alone. No-op for non-SUMMONED ownership.
      */
@@ -140,6 +232,17 @@ public final class Ownership {
         if (ownable.getRemainingLifespan() >= 0) {
             tag.putInt(TAG_LIFESPAN, ownable.getRemainingLifespan());
         }
+        if (ownable.getOwnershipType() == OwnershipType.THRALL) {
+            tag.putString(TAG_THRALL_ORDER, ownable.getThrallOrder().name());
+            BlockPos guardPos = ownable.getGuardPos();
+            if (guardPos != null) {
+                CompoundTag posTag = new CompoundTag();
+                posTag.putInt("X", guardPos.getX());
+                posTag.putInt("Y", guardPos.getY());
+                posTag.putInt("Z", guardPos.getZ());
+                tag.put(TAG_GUARD_POS, posTag);
+            }
+        }
     }
 
     /**
@@ -153,5 +256,35 @@ public final class Ownership {
         }
         ownable.setOwnershipType(OwnershipType.byName(tag.getString(TAG_TYPE)));
         ownable.setRemainingLifespan(tag.contains(TAG_LIFESPAN) ? tag.getInt(TAG_LIFESPAN) : -1);
+        ownable.setThrallOrder(tag.contains(TAG_THRALL_ORDER) ? ThrallOrder.byName(tag.getString(TAG_THRALL_ORDER)) : ThrallOrder.FOLLOW);
+        if (tag.contains(TAG_GUARD_POS)) {
+            CompoundTag posTag = tag.getCompound(TAG_GUARD_POS);
+            ownable.setGuardPos(new BlockPos(posTag.getInt("X"), posTag.getInt("Y"), posTag.getInt("Z")));
+        } else {
+            ownable.setGuardPos(null);
+        }
+    }
+
+    /** Writes an enthraller's thrall-UUID list ({@link IGMMMonster#getThralls()}) to {@code tag}. */
+    public static void saveThralls(CompoundTag tag, List<UUID> thralls) {
+        if (thralls.isEmpty()) {
+            return;
+        }
+        ListTag list = new ListTag();
+        for (UUID uuid : thralls) {
+            list.add(NbtUtils.createUUID(uuid));
+        }
+        tag.put("Thralls", list);
+    }
+
+    /** Reads an enthraller's thrall-UUID list from {@code tag} into {@code thralls} (cleared first). */
+    public static void loadThralls(CompoundTag tag, List<UUID> thralls) {
+        thralls.clear();
+        if (tag.contains("Thralls", net.minecraft.nbt.Tag.TAG_LIST)) {
+            ListTag list = tag.getList("Thralls", net.minecraft.nbt.Tag.TAG_INT_ARRAY);
+            for (int i = 0; i < list.size(); i++) {
+                thralls.add(NbtUtils.loadUUID(list.get(i)));
+            }
+        }
     }
 }

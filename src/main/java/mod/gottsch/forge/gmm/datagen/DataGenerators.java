@@ -30,6 +30,7 @@ public class DataGenerators {
         	GMMBlockTagsProvider blockTags = new GMMBlockTagsProvider(output, lookupProvider, event.getExistingFileHelper());
             generator.addProvider(true, blockTags);
             generator.addProvider(true, new GMMItemTagsProvider(output, lookupProvider, blockTags.contentsGetter(), event.getExistingFileHelper()));
+            generator.addProvider(true, new GMMEntityTypeTagsProvider(output, lookupProvider, event.getExistingFileHelper()));
 //            generator.addProvider(true, new TreasureBiomeTagsProvider(output, lookupProvider, event.getExistingFileHelper()));
 //            generator.addProvider(true, new TreasureWorldGenProvider(output, lookupProvider));
 //            generator.addProvider(true, TreasureLootTableProvider.create(output));

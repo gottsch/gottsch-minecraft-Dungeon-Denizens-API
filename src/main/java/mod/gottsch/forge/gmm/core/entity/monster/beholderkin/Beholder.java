@@ -3,7 +3,9 @@ package mod.gottsch.forge.gmm.core.entity.monster.beholderkin;
 import mod.gottsch.forge.gmm.core.config.MobConfig;
 import mod.gottsch.forge.gmm.core.config.MobConfigHelper;
 import mod.gottsch.forge.gmm.core.entity.ai.goal.CastSpellGoal;
+import mod.gottsch.forge.gmm.core.entity.ai.goal.EnthrallGoal;
 import mod.gottsch.forge.gmm.core.entity.ai.goal.WeightedChanceSummonGoal;
+import mod.gottsch.forge.gmm.core.tag.GMMTags;
 import mod.gottsch.forge.gottschcore.random.WeightedCollection;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.entity.EntityType;
@@ -57,6 +59,11 @@ public class Beholder extends Beholderkin {
 		if (spellCaster != null) {
 			this.goalSelector.addGoal(6, new CastSpellGoal(this, (int) config.number("spellChargeTime", 80), spellCaster));
 		}
+
+		this.goalSelector.addGoal(6, new EnthrallGoal(this, GMMTags.EntityTypes.BEHOLDER_ENTHRALL_CANDIDATES,
+				(int) config.number("enthrallChargeTime", 100),
+				(int) config.number("enthrallCooldownTime", 600),
+				(int) config.number("maxThralls", 3)));
 
 		if (summonMobs != null) {
 			this.goalSelector.addGoal(7, new WeightedChanceSummonGoal(this, (int) config.number("summonCooldownTime", 1200), 100, summonMobs, (int) config.number("minSummonSpawns", 1), (int) config.number("maxSummonSpawns", 1)));

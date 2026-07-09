@@ -36,6 +36,7 @@ public class GMMDamageTypes {
     public static final ResourceKey<DamageType> FIRESPOUT_SPELL = register("firespout_spell");
     public static final ResourceKey<DamageType> HARM_SPELL = register("harm_spell");
     public static final ResourceKey<DamageType> DISINTEGRATE_SPELL = register("disintegrate_spell");
+    public static final ResourceKey<DamageType> FIREWALL_SPELL = register("firewall_spell");
 
     private static ResourceKey<DamageType> register(String name) {
         return ResourceKey.create(Registries.DAMAGE_TYPE, new ResourceLocation(GMM.MOD_ID, name));

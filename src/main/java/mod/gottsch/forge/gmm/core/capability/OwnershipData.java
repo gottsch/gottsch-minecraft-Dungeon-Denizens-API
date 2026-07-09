@@ -2,6 +2,8 @@ package mod.gottsch.forge.gmm.core.capability;
 
 import mod.gottsch.forge.gmm.core.entity.ownership.IOwnable;
 import mod.gottsch.forge.gmm.core.entity.ownership.OwnershipType;
+import mod.gottsch.forge.gmm.core.entity.ownership.ThrallOrder;
+import net.minecraft.core.BlockPos;
 
 import javax.annotation.Nullable;
 import java.util.UUID;
@@ -17,6 +19,9 @@ public class OwnershipData implements IOwnable {
     private UUID ownerUUID;
     private OwnershipType ownershipType = OwnershipType.NONE;
     private int remainingLifespan = -1;
+    private ThrallOrder thrallOrder = ThrallOrder.FOLLOW;
+    @Nullable
+    private BlockPos guardPos;
 
     @Nullable
     @Override
@@ -47,5 +52,26 @@ public class OwnershipData implements IOwnable {
     @Override
     public void setRemainingLifespan(int ticks) {
         this.remainingLifespan = ticks;
+    }
+
+    @Override
+    public ThrallOrder getThrallOrder() {
+        return thrallOrder;
+    }
+
+    @Override
+    public void setThrallOrder(ThrallOrder order) {
+        this.thrallOrder = order == null ? ThrallOrder.FOLLOW : order;
+    }
+
+    @Nullable
+    @Override
+    public BlockPos getGuardPos() {
+        return guardPos;
+    }
+
+    @Override
+    public void setGuardPos(@Nullable BlockPos pos) {
+        this.guardPos = pos;
     }
 }

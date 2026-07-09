@@ -21,6 +21,7 @@ import mod.gottsch.forge.gmm.core.GMM;
 import mod.gottsch.forge.gmm.core.client.particle.AcidDripParticle;
 import mod.gottsch.forge.gmm.core.client.particle.BurningAuraFlameParticle;
 import mod.gottsch.forge.gmm.core.client.particle.ElectricSparkParticle;
+import mod.gottsch.forge.gmm.core.client.particle.SlimeTrailParticle;
 import mod.gottsch.forge.gmm.core.particle.GMMParticles;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.RegisterParticleProvidersEvent;
@@ -45,5 +46,6 @@ public class GMMClientSetup {
 		event.registerSpriteSet(GMMParticles.BLOOD_DRIP.get(), AcidDripParticle.Provider::new);
 		event.registerSpriteSet(GMMParticles.ELECTRIC_SPARK.get(), ElectricSparkParticle.Provider::new);
 		event.registerSpriteSet(GMMParticles.BURNING_AURA.get(), BurningAuraFlameParticle.Provider::new);
+		event.registerSpriteSet(GMMParticles.SLIME_TRAIL.get(), SlimeTrailParticle.Provider::new);
 	}
 }

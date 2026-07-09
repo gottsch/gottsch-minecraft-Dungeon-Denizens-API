@@ -93,11 +93,13 @@ public class SkeletonChampion extends GMMMonster {
 
     public static AttributeSupplier.Builder createAttributes() {
         return Monster.createMonsterAttributes()
-                // elite: tankier and harder-hitting than a rank-and-file skeleton, lightly armored
-                .add(Attributes.MAX_HEALTH, 30.0D)
+                // an Overworld mini-boss / pack leader: clearly out-classes the rank-and-file variants
+                // (~2x a normal skeleton's HP, a champion's blade, visibly plated). Magma stays the
+                // stronger bruiser — it's a Nether "demon"; this is the Overworld elite.
+                .add(Attributes.MAX_HEALTH, 40.0D)
                 .add(Attributes.MOVEMENT_SPEED, 0.25D)
-                .add(Attributes.ATTACK_DAMAGE, 4.0D)
-                .add(Attributes.ARMOR, 4.0D)
+                .add(Attributes.ATTACK_DAMAGE, 6.0D)
+                .add(Attributes.ARMOR, 6.0D)
                 .add(Attributes.KNOCKBACK_RESISTANCE, 0.3D);
     }
 

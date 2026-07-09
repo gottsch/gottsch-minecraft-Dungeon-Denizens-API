@@ -58,6 +58,13 @@ public class GMMParticles {
 	public static final RegistryObject<SimpleParticleType> BURNING_AURA =
 			PARTICLES.register("burning_aura", () -> new SimpleParticleType(true) {});
 
+	/**
+	 * A flat ooze smear left on the ground by a slow-moving mob (see {@code SlimeTrailParticle}). The
+	 * spawn velocity args (dx, dy, dz) are repurposed as an RGB tint rather than motion.
+	 */
+	public static final RegistryObject<SimpleParticleType> SLIME_TRAIL =
+			PARTICLES.register("slime_trail", () -> new SimpleParticleType(false) {});
+
 	public static void register(IEventBus modEventBus) {
 		PARTICLES.register(modEventBus);
 	}

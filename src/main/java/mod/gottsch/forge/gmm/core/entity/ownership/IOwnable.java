@@ -1,5 +1,7 @@
 package mod.gottsch.forge.gmm.core.entity.ownership;
 
+import net.minecraft.core.BlockPos;
+
 import javax.annotation.Nullable;
 import java.util.UUID;
 
@@ -32,4 +34,18 @@ public interface IOwnable {
     int getRemainingLifespan();
 
     void setRemainingLifespan(int ticks);
+
+    /**
+     * The standing order for a {@link OwnershipType#THRALL} mob; meaningless for other ownership
+     * types. Never null (defaults to {@link ThrallOrder#FOLLOW}).
+     */
+    ThrallOrder getThrallOrder();
+
+    void setThrallOrder(ThrallOrder order);
+
+    /** The bound position for a {@link ThrallOrder#GUARD} order, or null if none has been set. */
+    @Nullable
+    BlockPos getGuardPos();
+
+    void setGuardPos(@Nullable BlockPos pos);
 }

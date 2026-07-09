@@ -25,6 +25,9 @@ import mod.gottsch.forge.gmm.core.sound.GMMSounds;
  * Subterranean relative of the Gargoyle: it cannot really fly, only hover about a foot off the
  * ground, so it skims toward its target instead of launching skyward. Kept low so it fits under
  * tight sewer/dungeon ceilings.
+ * <p>
+ * No statue-disguise state either — see {@link Gargoyle}'s class doc for that (unbuilt) idea and its
+ * {@code GatedGoal} pointer; applies equally here.
  *
  * @author Mark Gottschling on July 26, 2025
  */

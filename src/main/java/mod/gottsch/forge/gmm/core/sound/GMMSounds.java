@@ -51,6 +51,8 @@ public class GMMSounds {
 	public static final RegistryObject<SoundEvent> SHADOWLORD_STEP = registerSoundEvent("entity.shadowlord.step");
 	/** shared wing-flap ambient, used by Gargoyle, Margoyle, and WingedSkeleton. */
 	public static final RegistryObject<SoundEvent> WING_FLAP = registerSoundEvent("entity.wing.flap");
+	/** shared ambient, used by the Mimic family (Chest Mimic, Barrel Mimic, ...). */
+	public static final RegistryObject<SoundEvent> MIMIC_AMBIENT = registerSoundEvent("entity.mimic.ambient");
 
 	/** Called from the GMM constructor to attach the registry to the mod event bus. */
 	public static void register(IEventBus modEventBus) {

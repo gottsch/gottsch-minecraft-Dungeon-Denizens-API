@@ -79,9 +79,10 @@ public class GMMItemTagsProvider extends ItemTagsProvider {
 		// swords by default. Consumers add their own (fancier) weapons additively.
 		tag(GMMTags.Items.SKELETON_CHAMPION_WEAPONS).add(Items.DIAMOND_SWORD, Items.NETHERITE_SWORD);
 
-		// Acid Skeleton corrosion immunity: diamond gear resists the acid (netherite added too, since
-		// it's the higher tier — drop it if only diamond should be immune). Consumers add more.
-		tag(GMMTags.Items.ACID_SKELETON_CORROSION_IMMUNE).add(
+		// Corrosion immunity (Acid Skeleton, Gelatinous Cube, ...): diamond gear resists it (netherite
+		// added too, since it's the higher tier — drop it if only diamond should be immune). Consumers
+		// add more.
+		tag(GMMTags.Items.CORROSION_IMMUNE).add(
 				Items.DIAMOND_HELMET, Items.DIAMOND_CHESTPLATE, Items.DIAMOND_LEGGINGS, Items.DIAMOND_BOOTS,
 				Items.DIAMOND_SWORD, Items.DIAMOND_AXE, Items.DIAMOND_PICKAXE, Items.DIAMOND_SHOVEL, Items.DIAMOND_HOE,
 				Items.NETHERITE_HELMET, Items.NETHERITE_CHESTPLATE, Items.NETHERITE_LEGGINGS, Items.NETHERITE_BOOTS,

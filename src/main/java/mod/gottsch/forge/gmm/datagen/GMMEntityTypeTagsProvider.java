@@ -1,0 +1,32 @@
+package mod.gottsch.forge.gmm.datagen;
+
+import mod.gottsch.forge.gmm.core.GMM;
+import mod.gottsch.forge.gmm.core.tag.GMMTags;
+import net.minecraft.core.HolderLookup.Provider;
+import net.minecraft.data.PackOutput;
+import net.minecraft.data.tags.EntityTypeTagsProvider;
+import net.minecraft.world.entity.EntityType;
+import net.minecraftforge.common.data.ExistingFileHelper;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.concurrent.CompletableFuture;
+
+public class GMMEntityTypeTagsProvider extends EntityTypeTagsProvider {
+	public GMMEntityTypeTagsProvider(PackOutput output, CompletableFuture<Provider> lookup, @Nullable ExistingFileHelper existingFileHelper) {
+		super(output, lookup, GMM.MOD_ID, existingFileHelper);
+	}
+
+	@Override
+	protected void addTags(Provider provider) {
+		// Beholder Enthrall candidates: common overworld/dungeon hostiles as a functional-standalone
+		// default. Consumers add their own mobs additively (see GMMTags.EntityTypes for the reasoning
+		// behind scoping this per-caster rather than sharing one tag across every future enthraller).
+		tag(GMMTags.EntityTypes.BEHOLDER_ENTHRALL_CANDIDATES).add(
+				EntityType.ZOMBIE, EntityType.HUSK, EntityType.DROWNED,
+				EntityType.SKELETON, EntityType.STRAY,
+				EntityType.SPIDER, EntityType.CAVE_SPIDER,
+				EntityType.CREEPER, EntityType.WITCH,
+				EntityType.PILLAGER, EntityType.VINDICATOR,
+				EntityType.BLAZE, EntityType.PIGLIN);
+	}
+}

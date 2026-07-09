@@ -34,5 +34,9 @@
   "entity.wing.flap": {
     "subtitle": "subtitles.gmm.entity.wing.flap",
     "sounds": [ "gmm:entity/wing/flap" ]
+  },
+  "entity.mimic.ambient": {
+    "subtitle": "subtitles.gmm.entity.mimic.ambient",
+    "sounds": [ "gmm:entity/mimic/ambient1", "gmm:entity/mimic/ambient2" ]
   }
 }

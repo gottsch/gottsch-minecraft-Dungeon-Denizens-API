@@ -33,9 +33,11 @@ public class GMMTags {
         // add their own weapons additively.
         public static final TagKey<Item> SKELETON_CHAMPION_WEAPONS = mod(GMM.MOD_ID, "skeleton_champion/weapons");
 
-        // Equipment immune to the Acid Skeleton's on-hit corrosion. gmm ships diamond/netherite gear
-        // as the default; consumers can add their own corrosion-proof items additively.
-        public static final TagKey<Item> ACID_SKELETON_CORROSION_IMMUNE = mod(GMM.MOD_ID, "acid_skeleton/corrosion_immune");
+        // Equipment immune to acid/corrosion damage (Acid Skeleton, Gelatinous Cube, ...). gmm ships
+        // diamond/netherite gear as the default; consumers can add their own corrosion-proof items
+        // additively. Shared across mobs rather than mob-scoped since it's a material property, not a
+        // per-mob equipment pool.
+        public static final TagKey<Item> CORROSION_IMMUNE = mod(GMM.MOD_ID, "corrosion_immune");
 
         // Shadow spawn weapon pool (consumer-populated)
         public static final TagKey<Item> SHADOW_WEAPONS = mod(GMM.MOD_ID, "shadow/weapons");
@@ -64,6 +66,13 @@ public class GMMTags {
 
         // mobs a Skeleton Champion rallies (buffs) while alive — consumers add their skeleton types
         public static final TagKey<EntityType<?>> SKELETON_CHAMPION_RALLY_ALLIES = mod(GMM.MOD_ID, "skeleton_champion/rally_allies");
+
+        // mobs a Beholder can Enthrall (EnthrallGoal). Scoped per-caster rather than shared: a
+        // Beholder's "high IQ, psychic powers" flavor lets it dominate stronger mobs than, say, a
+        // Shadowlord would be able to (which would get its own gmm:shadowlord/enthrall_candidates tag
+        // once/if it ever wires EnthrallGoal). gmm ships a default of common overworld/dungeon
+        // hostiles; consumers add their own mobs additively.
+        public static final TagKey<EntityType<?>> BEHOLDER_ENTHRALL_CANDIDATES = mod(GMM.MOD_ID, "beholder/enthrall_candidates");
 
         public static TagKey<EntityType<?>> mod(String domain, String path) {
             return TagKey.create(Registries.ENTITY_TYPE, new ResourceLocation(domain, path));

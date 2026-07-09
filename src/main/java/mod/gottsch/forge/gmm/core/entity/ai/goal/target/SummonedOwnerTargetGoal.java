@@ -2,6 +2,7 @@ package mod.gottsch.forge.gmm.core.entity.ai.goal.target;
 
 import mod.gottsch.forge.gmm.core.entity.monster.IGMMMonster;
 import mod.gottsch.forge.gmm.core.entity.ownership.OwnershipType;
+import mod.gottsch.forge.gmm.core.entity.ownership.ThrallOrder;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.goal.Goal;
@@ -35,6 +36,12 @@ public class SummonedOwnerTargetGoal extends TargetGoal {
         // only mobs that are actually beholden to their owner assist it; a REINFORCEMENT targets freely.
         OwnershipType type = this.summonable.getOwnershipType();
         if (type != OwnershipType.SUMMONED && type != OwnershipType.THRALL) {
+            return false;
+        }
+        // a THRALL under any order other than FOLLOW has its own dedicated behavior (see
+        // ThrallStayGoal/ThrallGuardGoal/ThrallAttackOrderGoal) and shouldn't have the owner's combat
+        // target mirrored onto it.
+        if (type == OwnershipType.THRALL && this.summonable.getThrallOrder() != ThrallOrder.FOLLOW) {
             return false;
         }
         LivingEntity owner = this.summonable.getSummonedOwner();

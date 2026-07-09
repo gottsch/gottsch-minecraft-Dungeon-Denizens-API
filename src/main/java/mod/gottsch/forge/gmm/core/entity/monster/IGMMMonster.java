@@ -1,10 +1,13 @@
 package mod.gottsch.forge.gmm.core.entity.monster;
 
 import mod.gottsch.forge.gmm.core.entity.ownership.IOwnable;
+import mod.gottsch.forge.gmm.core.entity.ownership.Ownership;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.entity.LivingEntity;
 
 import javax.annotation.Nullable;
+import java.util.List;
+import java.util.UUID;
 
 /**
  * The common contract for all GMM monsters. Extends {@link IOwnable} so every GMM mob carries
@@ -38,4 +41,11 @@ public interface IGMMMonster extends IOwnable {
     default boolean canSummonedHaveOwner() {
         return false;
     }
+
+    /**
+     * The live list of UUIDs this mob currently enthralls via {@link Ownership#enthrall}. Mutable --
+     * callers add/remove UUIDs directly. Only meaningful for a mob that actually casts Enthrall (e.g.
+     * Beholder); every other GMM mob just carries an always-empty list.
+     */
+    List<UUID> getThralls();
 }
