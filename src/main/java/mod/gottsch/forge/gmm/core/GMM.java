@@ -19,6 +19,7 @@ package mod.gottsch.forge.gmm.core;
 
 import mod.gottsch.forge.gmm.core.capability.GMMCapabilities;
 import mod.gottsch.forge.gmm.core.config.GMMRegistries;
+import mod.gottsch.forge.gmm.core.effect.GMMMobEffects;
 import mod.gottsch.forge.gmm.core.particle.GMMParticles;
 import mod.gottsch.forge.gmm.core.sound.GMMSounds;
 import net.minecraftforge.eventbus.api.IEventBus;
@@ -57,6 +58,7 @@ public class GMM {
         modEventBus.register(GMMRegistries.class);
         GMMSounds.register(modEventBus);
         GMMParticles.register(modEventBus);
+        GMMMobEffects.register(modEventBus);
         GMMCapabilities.register(modEventBus);
     }
 }

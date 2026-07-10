@@ -65,6 +65,13 @@ public class GMMParticles {
 	public static final RegistryObject<SimpleParticleType> SLIME_TRAIL =
 			PARTICLES.register("slime_trail", () -> new SimpleParticleType(false) {});
 
+	/**
+	 * A drifting, glowing eye-orb mote used for the Beholder's Enthrall charm telegraph/burst (see
+	 * {@code EnthrallGoal}), in place of the generic vanilla witch-spell particle.
+	 */
+	public static final RegistryObject<SimpleParticleType> OCULUS_ORB =
+			PARTICLES.register("oculus_orb", () -> new SimpleParticleType(false) {});
+
 	public static void register(IEventBus modEventBus) {
 		PARTICLES.register(modEventBus);
 	}

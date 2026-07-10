@@ -28,5 +28,10 @@ public class GMMEntityTypeTagsProvider extends EntityTypeTagsProvider {
 				EntityType.CREEPER, EntityType.WITCH,
 				EntityType.PILLAGER, EntityType.VINDICATOR,
 				EntityType.BLAZE, EntityType.PIGLIN);
+
+		// Wight thrall-raising pools (see Wight#tryRaiseThrall): gmm ships a zombie default for both
+		// so a Wight is functional standalone; consumers add their own zombie-family mobs additively.
+		tag(GMMTags.EntityTypes.WIGHT_SUMMON_ALLIES).add(EntityType.ZOMBIE);
+		tag(GMMTags.EntityTypes.WIGHT_ENTHRALL_CANDIDATES).add(EntityType.ZOMBIE);
 	}
 }

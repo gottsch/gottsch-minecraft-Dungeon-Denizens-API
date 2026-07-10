@@ -8,5 +8,6 @@
   "subtitles.gmm.entity.shadowlord.ambient": "Shadowlord murmurs",
   "subtitles.gmm.entity.shadowlord.step": "Shadowlord steps",
   "subtitles.gmm.entity.wing.flap": "Wings flap",
-  "subtitles.gmm.entity.mimic.ambient": "Mimic rattles"
+  "subtitles.gmm.entity.mimic.ambient": "Mimic rattles",
+  "effect.gmm.withered": "Withered"
 }

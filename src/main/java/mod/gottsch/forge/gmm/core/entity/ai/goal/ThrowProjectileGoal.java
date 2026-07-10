@@ -21,6 +21,12 @@ import java.util.function.Predicate;
  * ranged thrower is supplied as a {@link Predicate} so the same class also has no knowledge of the
  * consumer mob's "is ranged" flag.
  * <p>
+ * A {@code null} launcher is also valid -- the goal then does positioning only (approach/retreat/
+ * hold-ground + the point-blank melee fallback), never swings or "throws" anything. Useful for a
+ * caster that should stand off at range (e.g. driven by a separate {@code CastSpellGoal}, which
+ * declares no {@code Goal.Flag}s and so never contests this goal for movement control) but still
+ * needs the same approach/retreat/melee-fallback positioning a ranged thrower already has.
+ * <p>
  * Generalized from Dungeon Denizens' inner OrcThrowRockGoal.
  *
  * @author Mark Gottschling
@@ -149,8 +155,9 @@ public class ThrowProjectileGoal extends Goal {
         }
 
         // throw only while holding ground (in range or cornered, facing the target) and
-        // not in melee -- never mid-retreat with its back turned.
-        if (!throwing || !canSee || inMeleeRange) {
+        // not in melee -- never mid-retreat with its back turned. A null launcher (positioning-only
+        // use, see class javadoc) never reaches the swing/launch below -- chargeTime just sits at 0.
+        if (!throwing || !canSee || inMeleeRange || this.launcher == null) {
             this.chargeTime = 0;
         } else if (++this.chargeTime >= this.maxChargeTime) {
             mob.swing(InteractionHand.MAIN_HAND);
@@ -174,9 +181,7 @@ public class ThrowProjectileGoal extends Goal {
             double spawnX = mob.getX() + fx * FORWARD_OFFSET + rightX * SIDE_OFFSET;
             double spawnY = mob.getEyeY() - 0.3D;
             double spawnZ = mob.getZ() + fz * FORWARD_OFFSET + rightZ * SIDE_OFFSET;
-            if (this.launcher != null) {
-                this.launcher.launch(mob, target, spawnX, spawnY, spawnZ);
-            }
+            this.launcher.launch(mob, target, spawnX, spawnY, spawnZ);
             this.chargeTime = 0;
         }
     }

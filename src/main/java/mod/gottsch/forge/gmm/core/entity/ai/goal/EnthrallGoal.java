@@ -1,8 +1,10 @@
 package mod.gottsch.forge.gmm.core.entity.ai.goal;
 
+import mod.gottsch.forge.gmm.core.entity.monster.ICastingMob;
 import mod.gottsch.forge.gmm.core.entity.monster.IGMMMonster;
 import mod.gottsch.forge.gmm.core.entity.ownership.Ownership;
 import mod.gottsch.forge.gmm.core.entity.ownership.OwnershipType;
+import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
@@ -10,6 +12,7 @@ import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.goal.Goal;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.AABB;
 
 import javax.annotation.Nullable;
@@ -48,16 +51,27 @@ public class EnthrallGoal extends Goal {
     private final int cooldownTime;
     private final int maxThralls;
     private final double range;
+    private final ParticleOptions particle;
     private int chargeTimeCount;
     private int cooldownCount;
+    /** True only once the charge actually completes -- see {@link #stop()}. */
+    private boolean succeeded;
     @Nullable
     private Mob currentTarget;
 
     public EnthrallGoal(Mob mob, TagKey<EntityType<?>> candidateTag, int chargeTime, int cooldownTime, int maxThralls) {
-        this(mob, candidateTag, chargeTime, cooldownTime, maxThralls, DEFAULT_RANGE);
+        this(mob, candidateTag, chargeTime, cooldownTime, maxThralls, DEFAULT_RANGE, ParticleTypes.WITCH);
+    }
+
+    public EnthrallGoal(Mob mob, TagKey<EntityType<?>> candidateTag, int chargeTime, int cooldownTime, int maxThralls, ParticleOptions particle) {
+        this(mob, candidateTag, chargeTime, cooldownTime, maxThralls, DEFAULT_RANGE, particle);
     }
 
     public EnthrallGoal(Mob mob, TagKey<EntityType<?>> candidateTag, int chargeTime, int cooldownTime, int maxThralls, double range) {
+        this(mob, candidateTag, chargeTime, cooldownTime, maxThralls, range, ParticleTypes.WITCH);
+    }
+
+    public EnthrallGoal(Mob mob, TagKey<EntityType<?>> candidateTag, int chargeTime, int cooldownTime, int maxThralls, double range, ParticleOptions particle) {
         this.mob = mob;
         this.enthraller = (IGMMMonster) mob;
         this.candidateTag = candidateTag;
@@ -65,10 +79,11 @@ public class EnthrallGoal extends Goal {
         this.cooldownTime = cooldownTime;
         this.maxThralls = maxThralls;
         this.range = range;
+        this.particle = particle;
     }
 
     public EnthrallGoal(Mob mob, TagKey<EntityType<?>> candidateTag) {
-        this(mob, candidateTag, DEFAULT_CHARGE_TIME, 600, 3, DEFAULT_RANGE);
+        this(mob, candidateTag, DEFAULT_CHARGE_TIME, 600, 3, DEFAULT_RANGE, ParticleTypes.WITCH);
     }
 
     @Override
@@ -88,13 +103,25 @@ public class EnthrallGoal extends Goal {
     public void start() {
         chargeTimeCount = 0;
         currentTarget = findNearestTarget();
+        if (mob instanceof ICastingMob casting) {
+            casting.setCasting(true);
+        }
     }
 
     @Override
     public void stop() {
         chargeTimeCount = 0;
-        cooldownCount = cooldownTime;
+        // only a completed cast pays the full cooldown; a charge merely interrupted by a momentary
+        // LOS/range hiccup (routine in a crowded fight) shouldn't be punished the same as a successful
+        // enthrallment -- it can just retry against the nearest eligible target right away.
+        if (succeeded) {
+            cooldownCount = cooldownTime;
+            succeeded = false;
+        }
         currentTarget = null;
+        if (mob instanceof ICastingMob casting) {
+            casting.setCasting(false);
+        }
     }
 
     @Override
@@ -113,15 +140,30 @@ public class EnthrallGoal extends Goal {
             return;
         }
         mob.getLookControl().setLookAt(currentTarget, 30.0F, 30.0F);
+        // charge-up telegraph: a few dark motes around the caster every few ticks, so the cast is
+        // visible well before it lands rather than only at the moment it completes.
+        if (chargeTimeCount % 5 == 0 && mob.level() instanceof ServerLevel serverLevel) {
+            serverLevel.sendParticles(this.particle, mob.getX(), mob.getY() + mob.getBbHeight() * 0.7D, mob.getZ(),
+                    3, mob.getBbWidth() * 0.3D, 0.2D, mob.getBbWidth() * 0.3D, 0.01D);
+        }
         if (++chargeTimeCount >= chargeTime) {
             Ownership.enthrall(currentTarget, mob);
+            // a target enthralled mid-fight (e.g. a mob caught in the caster's own stray spellfire)
+            // would otherwise keep its pre-existing HurtByTargetGoal lock on the caster as its target;
+            // redirect it at the caster's own foe (usually the player) instead so it stops attacking
+            // its new owner.
+            if (mob.getTarget() instanceof Player player) {
+                Ownership.issueAttackOrder(currentTarget, player);
+            } else {
+                currentTarget.setTarget(null);
+            }
             if (mob.level() instanceof ServerLevel serverLevel) {
-                serverLevel.sendParticles(ParticleTypes.WITCH, currentTarget.getX(), currentTarget.getY() + currentTarget.getBbHeight() * 0.5D, currentTarget.getZ(),
+                serverLevel.sendParticles(this.particle, currentTarget.getX(), currentTarget.getY() + currentTarget.getBbHeight() * 0.5D, currentTarget.getZ(),
                         20, 0.3D, 0.3D, 0.3D, 0.0D);
                 serverLevel.playSound(null, currentTarget.getX(), currentTarget.getY(), currentTarget.getZ(), SoundEvents.EVOKER_CAST_SPELL, mob.getSoundSource(), 1.0F, 1.0F);
             }
             chargeTimeCount = 0;
-            cooldownCount = cooldownTime;
+            succeeded = true;
         }
     }
 

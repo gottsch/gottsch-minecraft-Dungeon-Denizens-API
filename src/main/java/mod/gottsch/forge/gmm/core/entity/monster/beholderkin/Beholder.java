@@ -5,6 +5,8 @@ import mod.gottsch.forge.gmm.core.config.MobConfigHelper;
 import mod.gottsch.forge.gmm.core.entity.ai.goal.CastSpellGoal;
 import mod.gottsch.forge.gmm.core.entity.ai.goal.EnthrallGoal;
 import mod.gottsch.forge.gmm.core.entity.ai.goal.WeightedChanceSummonGoal;
+import mod.gottsch.forge.gmm.core.entity.ai.goal.target.MobHurtByTargetGoal;
+import mod.gottsch.forge.gmm.core.particle.GMMParticles;
 import mod.gottsch.forge.gmm.core.tag.GMMTags;
 import mod.gottsch.forge.gottschcore.random.WeightedCollection;
 import net.minecraft.sounds.SoundEvent;
@@ -63,7 +65,8 @@ public class Beholder extends Beholderkin {
 		this.goalSelector.addGoal(6, new EnthrallGoal(this, GMMTags.EntityTypes.BEHOLDER_ENTHRALL_CANDIDATES,
 				(int) config.number("enthrallChargeTime", 100),
 				(int) config.number("enthrallCooldownTime", 600),
-				(int) config.number("maxThralls", 3)));
+				(int) config.number("maxThralls", 6),
+				GMMParticles.OCULUS_ORB.get()));
 
 		if (summonMobs != null) {
 			this.goalSelector.addGoal(7, new WeightedChanceSummonGoal(this, (int) config.number("summonCooldownTime", 1200), 100, summonMobs, (int) config.number("minSummonSpawns", 1), (int) config.number("maxSummonSpawns", 1)));
@@ -74,6 +77,9 @@ public class Beholder extends Beholderkin {
 
 		// NOTE unaffected by Boulders
 
+		// retaliate against whatever hurts it (e.g. a mob caught in its own stray spellfire) instead of
+		// passively eating hits while it keeps casting at its original target.
+		this.targetSelector.addGoal(1, new MobHurtByTargetGoal(this));
 		this.targetSelector.addGoal(2, new NearestAttackableTargetGoal<>(this, Player.class, true));
 	}
 

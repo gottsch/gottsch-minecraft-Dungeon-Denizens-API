@@ -148,8 +148,83 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Both reuse Treasure2's Blockbench geometry/renderer verbatim (`VanillaChestMimicModel`/
     `BarrelMimicModel`, `*Renderer` + the shared `GMMEyesLayer` for their glowing-eye overlay) and a new
     shared `GMMSounds.MIMIC_AMBIENT`.
-
-### Fixed
+- `GraveZombie` (`core/entity/monster/zombie/GraveZombie.java`): an ambush zombie that spawns
+  **burrowed** (invisible, AI off) and digs up near a player instead of walking in (see the
+  `MobIdeasCatalog`'s "Grave Zombie" entry). Runs on the shared vanilla zombie rig — dirt-caked recolor
+  (localized dirt splotches/clumps over the intact vanilla texture, the same "recolor patches, not a
+  full hue-shift" idiom as `bloody_skeleton.png`), not new geometry — but the two transitions get a
+  dedicated `GraveZombieModel` pose: the whole rig (every part moved together as one unit, not via
+  independent per-part rotations — that reads as a broken/twisted pose) physically sinks below/rises to
+  its standing Y as it buries/surfaces, arms additionally thrust straight up and fan down to the normal
+  shamble as it emerges (reversed on the way back down), plus a small uniform positional shudder and a
+  steady trickle of dirt particles at its feet — fed by `getRiseAmount(partialTicks)` the same way
+  `BloodyBonesModel#collapse` drives its rise. Its phase machine (`PHASE_BURROWED → PHASE_SURFACING → PHASE_ACTIVE →
+  PHASE_REBURROWING`) otherwise mirrors `BloodyBones`'s collapse/rise handling: `setNoAi(true)`
+  suppresses `customServerAiStep` entirely while inert, so the timer runs in `tick()` instead. While
+  dormant it periodically scans for the nearest non-creative/non-spectator player within `detectRange`
+  (a creative-mode player is never a valid ambush target — it stays buried rather than surface for
+  someone who isn't actually playing) and, once found, teleports **while still invisible** to a clear,
+  sturdy-ground spot within `[ambushMinRadius, ambushMaxRadius]` of them, then surfaces over
+  `surfaceTicks` (~2.5s default) of visible digging. Losing its target/line-of-sight for
+  `loseSightTicks` reburrows over `reburrowTicks` (the same animation in reverse) rather than letting it
+  chase openly — this also extinguishes any fire it caught while active in daylight (`clearFire()`),
+  and fire damage is excluded from the struck-while-hidden interrupt (`DamageTypeTags.IS_FIRE`), since
+  without both a burning zombie would re-interrupt its own reburrow on every fire tick and never
+  actually finish sinking. Already within `ambushMaxRadius` of the detected player? It surfaces right
+  there instead of relocating. Being struck always surfaces it immediately in place (skipping straight
+  to the animation) regardless of the attacker's game mode — same "shouldn't feel unresponsive" rule as
+  Gray Ooze/Mimic, and the way to preview the animation as a creative-mode tester. Only ever digs into
+  `minecraft:dirt` (never stone/other terrain, gated both in the reposition search and in DD's new
+  `SpawnRulesUtil.checkGraveZombieSpawnRules`), which as a side effect makes it a de facto surface mob —
+  DD's biome list swapped the original cave biomes for surface ones (`dark_forest`/`forest`/`plains`/
+  `swamp`) accordingly. A consumer can anchor a specific instance to a spot with vanilla's own
+  `Mob#restrictTo(BlockPos, int)` (saved/restored manually, since vanilla `Mob` doesn't persist it): a
+  restricted instance never relocates and never despawns, so a mapmaker can hand-place a graveyard of
+  zombies that rise from their own graves.
+  Config-driven under `gmm:mob_config` (`ambush` flag, `detectRange`, `ambushMinRadius`,
+  `ambushMaxRadius`, `surfaceTicks`, `reburrowTicks`, `loseSightTicks`) — see `docs/CONFIG.md`.
+- `Wight` (`core/entity/monster/zombie/Wight.java`): an elite undead that kept its wits — see the
+  `MobIdeasCatalog`'s "Wight" entry. Fights like a person rather than a mindless corpse: `WightModel`
+  extends the shared `GMMZombieModel` rig but skips its zombie-arms-out lurch (a new overridable
+  `animateArms(float)` hook on `GMMZombieModel`, so the default zombie pose is unaffected for every
+  other variant), keeping the normal humanoid walk/attack arm swing instead. Carries a real weapon
+  drawn from the `gmm:wight/weapons` item tag (ships iron/stone sword + bow; a bow flips it onto
+  `VariantPowerRangedBowAttackGoal` via `reassessWeaponGoal()`, the same melee/ranged switch
+  `BowSkeleton` uses) plus a dyed-leather chestplate "burial wrap" as the equipped "clothes".
+  The flesh recolor script gained a masking pass for this: the vanilla zombie texture actually bakes
+  a teal shirt + blue-purple trousers into the same 64x64 skin as the green head/arm flesh (confirmed
+  by sampling the real `zombie.png`, not assumed), so a plain whole-image luminance ramp would have
+  recolored the "clothes" pixels too. `is_greenish_flesh` now gates both the colour ramp and the
+  detail (speck) pass to only green-dominant pixels — the teal/blue clothing pixels pass through with
+  their original vanilla colour untouched — generating `textures/entity/wight.png` (pale, bloodless
+  flesh — matches typical D&D depictions; the original ashen-grey ramp was corrected after user
+  feedback and preserved rather than discarded, see the `ash_zombie` candidate ramp in the script)
+  while leaving the shirt/trousers exactly as vanilla painted them.
+  Every landed hit applies a new stacking, temporary max-health-reduction status
+  (`GMMMobEffects.WITHERED`, gmm's first registered `MobEffect` — infrastructure only, same
+  "must be registered to be usable" exception as `GMMSounds`/`GMMParticles`; vanilla's own
+  `MobEffectInstance` duration/removal machinery re-clamps health on expiry, no bespoke expiry
+  tracking needed) and heals the Wight for a fraction of the damage dealt.
+  Alongside combat it runs two independent, continuously-cast abilities — the same shape Beholder
+  uses for its own Enthrall + minion-summon kit, each with its own charge time/cooldown and a shared
+  `maxThralls` cap: Summon (a new `SummonThrallGoal`, conjures a fresh mob from the
+  `gmm:wight/summon_allies` tag near itself, then `Ownership.enthrall`s it) and Enthrall (the existing
+  `EnthrallGoal`, dominates an existing nearby live mob from `gmm:wight/enthrall_candidates` directly)
+  — both tags ship a `minecraft:zombie` default. Config-driven under `gmm:mob_config` (`wither`,
+  `witherDuration`, `maxWitherStacks`, `lifesteal`, `summonChargeTime`, `summonCooldownTime`,
+  `summonSpawnRadius`, `enthrallChargeTime`, `enthrallCooldownTime`, `enthrallRange`, `maxThralls`) —
+  see `docs/CONFIG.md`. Base `MAX_HEALTH` corrected 30 -> 41 (D&D 5e's Wight stat block is 45 HP;
+  scaled via the project's zombie-baseline ratio, D&D 22 HP <-> MC 20 HP ~0.91x — the same conversion
+  the Mimic stat block uses — 45 * 20/22 ~ 41, not the un-scaled 30 first shipped). Pushed even paler
+  after a second look at the texture.
+  Both Summon and Enthrall now visibly telegraph their charge-up instead of just standing there: each
+  goal periodically spawns particles around the caster while charging (soul motes for Summon, witch
+  motes for Enthrall — Beholder's own `EnthrallGoal` usage gets this too, for free) and flips a new
+  `ICastingMob.setCasting(boolean)` on `start()`/`stop()`; `Wight` implements it via a synced
+  `DATA_CASTING` boolean, and `WightModel` reads it to swap in a raised, gently-waving channeling arm
+  pose (`animateArms`'s signature grew an entity parameter, on `GMMZombieModel`, so a subclass can key
+  its pose off synced state — a mechanical change only, every existing zombie-family variant is
+  unaffected since none of them override it).
 
 - Beholderkin (Beholder / Gazer / Spectator / DeathTyrant) flight & attack fixes:
   - `WeightedChanceSummonGoal`: ground scan now uses `isAir()` (covers cave/void air) instead of
@@ -161,6 +236,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `BeholderkinRandomFloatAroundGoal`: no longer picks float targets inside solid terrain (which
     `MoveControl.canReach` could never reach, leaving the mob hovering stuck); targets are now clamped
     to open air within `[ground+1, ground+maxFloatHeight]`.
+
+- `OrcShaman` (`core/entity/monster/OrcShaman.java`): a caster variant of `Orc` — see the
+  `MobIdeasCatalog`'s "Orc Shaman" entry. Extends `Orc` directly and adds a `CastSpellGoal` on top
+  (the goal declares no `Goal.Flag`s, so it never contests Orc's other goals for control — it simply
+  casts whenever the target is out of melee range and in sight). The caster's spell is consumer-
+  supplied via the new `OrcShaman.spellCaster` static hook, the same pattern as
+  `Orc.projectileLauncher`; wired to GMM's own `SpikeGrowthSpell`, giving that spell its first real
+  caster (previously only test-wired to Beholder, then reverted). Config-driven `spellChargeTime`
+  under `gmm:mob_config` (falls back to `CastSpellGoal`'s own 80-tick default). Now has its own
+  dedicated rig (`OrcShamanModel`/`OrcShamanRenderer`, `textures/entity/orc_shaman.png`), ported from a
+  user-built Blockbench model: a cowl merged into the head (inflated outer layer, vanilla hat-layer
+  idiom) and a robe merged into the torso, no shoulder pads. Textured the previously-flat cowl/robe
+  placeholder fill with fold/gradient/gold-trim detail and paled the blue-ish skin tone (HSV
+  brighten+desaturate); also closed 3 faces that were fully transparent from certain angles (robe's
+  sides, both garments' undersides).
+  Fights nothing like a regular Orc after user feedback: `Orc` gained an overridable
+  `getCombatGoalOverride()` hook so `OrcShaman` can fully replace the melee/throw switch with the
+  same `ThrowProjectileGoal` its ranged-rock-thrower sibling already uses for approach/retreat/
+  hold-ground positioning, just constructed with a `null` launcher (`ThrowProjectileGoal` now treats
+  a `null` launcher as "position only, throw nothing" instead of assuming one is always supplied) —
+  so it stands off at range, retreats if crowded, and only melees (bare fists — `populateDefaultEquipmentSlots`
+  always empties the main hand now) at true point-blank, and never lobs rocks. Base stats no longer
+  match `Orc`: `ATTACK_DAMAGE` 3.25 → 1.5 and `MAX_HEALTH` 25 → 12, a ~0.44x ratio taken from D&D 5e's
+  own Orc stat blocks (a quarterstaff-wielding Orc Shaman's melee average is roughly 0.44x a plain
+  Orc's greataxe), applied to both stats rather than melee damage alone since this variant is meant
+  to be weaker overall, not just in melee.
 
 ### Changed
 

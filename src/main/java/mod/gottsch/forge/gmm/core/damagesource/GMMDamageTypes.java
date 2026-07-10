@@ -37,6 +37,13 @@ public class GMMDamageTypes {
     public static final ResourceKey<DamageType> HARM_SPELL = register("harm_spell");
     public static final ResourceKey<DamageType> DISINTEGRATE_SPELL = register("disintegrate_spell");
     public static final ResourceKey<DamageType> FIREWALL_SPELL = register("firewall_spell");
+    public static final ResourceKey<DamageType> SPIKE_GROWTH_SPELL = register("spike_growth_spell");
+    // Bodak's Death Gaze (see core.entity.monster.zombie.Bodak) -- not a spell projectile, but shares
+    // this same data-driven damage-type mechanism.
+    public static final ResourceKey<DamageType> DEATH_GAZE = register("death_gaze");
+    // Bodak's Withering Gaze (WitheringGazeSpell) -- the ranged, no-windup necrotic bolt companion to
+    // Death Gaze's melee-range stare.
+    public static final ResourceKey<DamageType> WITHERING_GAZE_SPELL = register("withering_gaze_spell");
 
     private static ResourceKey<DamageType> register(String name) {
         return ResourceKey.create(Registries.DAMAGE_TYPE, new ResourceLocation(GMM.MOD_ID, name));

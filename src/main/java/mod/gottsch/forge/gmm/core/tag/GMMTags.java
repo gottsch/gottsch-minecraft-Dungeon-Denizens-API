@@ -39,6 +39,16 @@ public class GMMTags {
         // per-mob equipment pool.
         public static final TagKey<Item> CORROSION_IMMUNE = mod(GMM.MOD_ID, "corrosion_immune");
 
+        // Wight weapon pool: melee (sword) or ranged (bow) -- see Wight#reassessWeaponGoal. gmm ships
+        // a modest vanilla default of each so a Wight is armed standalone; consumers add more.
+        public static final TagKey<Item> WIGHT_WEAPONS = mod(GMM.MOD_ID, "wight/weapons");
+
+        // Bodak gaze ward: a helmet-slot item that blocks Death Gaze entirely (see
+        // Bodak#isLookingAtMe), mirroring vanilla Enderman's own carved-pumpkin ward. gmm ships carved
+        // pumpkin as the default so a Bodak is counterable standalone with zero new items; consumers
+        // can add their own dedicated ward item (blindfold/goggles/etc.) additively.
+        public static final TagKey<Item> BODAK_GAZE_WARD = mod(GMM.MOD_ID, "bodak/gaze_ward");
+
         // Shadow spawn weapon pool (consumer-populated)
         public static final TagKey<Item> SHADOW_WEAPONS = mod(GMM.MOD_ID, "shadow/weapons");
         // Shadow-bane weapons: bypass the Shadow's metal resistance and deal bonus damage.
@@ -73,6 +83,15 @@ public class GMMTags {
         // once/if it ever wires EnthrallGoal). gmm ships a default of common overworld/dungeon
         // hostiles; consumers add their own mobs additively.
         public static final TagKey<EntityType<?>> BEHOLDER_ENTHRALL_CANDIDATES = mod(GMM.MOD_ID, "beholder/enthrall_candidates");
+
+        // A Wight that lands a killing blow may raise a fresh thrall instead of leaving a plain kill
+        // (see Wight#tryRaiseThrall) via one of two mechanisms, each its own tag so a consumer can tune
+        // them independently: SUMMON_ALLIES spawns a brand-new mob (then stamps it a permanent thrall
+        // the same way Ownership#enthrall does); ENTHRALL_CANDIDATES instead dominates an existing
+        // nearby live mob. gmm ships a zombie default for both; consumers add their own zombie-family
+        // mobs additively.
+        public static final TagKey<EntityType<?>> WIGHT_SUMMON_ALLIES = mod(GMM.MOD_ID, "wight/summon_allies");
+        public static final TagKey<EntityType<?>> WIGHT_ENTHRALL_CANDIDATES = mod(GMM.MOD_ID, "wight/enthrall_candidates");
 
         public static TagKey<EntityType<?>> mod(String domain, String path) {
             return TagKey.create(Registries.ENTITY_TYPE, new ResourceLocation(domain, path));

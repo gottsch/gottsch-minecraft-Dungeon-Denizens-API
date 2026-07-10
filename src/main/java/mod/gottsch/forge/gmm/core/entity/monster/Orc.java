@@ -16,6 +16,7 @@ import net.minecraft.world.entity.SpawnGroupData;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.ai.goal.LookAtPlayerGoal;
 import net.minecraft.world.entity.ai.goal.MeleeAttackGoal;
 import net.minecraft.world.entity.ai.goal.MoveThroughVillageGoal;
@@ -153,18 +154,32 @@ public class Orc extends GMMMonster {
     }
 
     /**
-     * Swaps the priority-4 attack goal between melee and ranged throwing based on {@link #isRanged()}.
+     * Swaps the priority-4 attack goal between melee and ranged throwing based on {@link #isRanged()},
+     * unless a subclass supplies its own {@link #getCombatGoalOverride()}.
      */
     public void reassessWeaponGoal() {
         if (this.level() != null && !this.level().isClientSide) {
             this.goalSelector.removeGoal(this.meleeGoal);
             this.goalSelector.removeGoal(this.throwGoal);
-            if (this.isRanged()) {
+            Goal override = getCombatGoalOverride();
+            if (override != null) {
+                this.goalSelector.removeGoal(override);
+                this.goalSelector.addGoal(4, override);
+            } else if (this.isRanged()) {
                 this.goalSelector.addGoal(4, this.throwGoal);
             } else {
                 this.goalSelector.addGoal(4, this.meleeGoal);
             }
         }
+    }
+
+    /**
+     * Hook for a subclass to fully replace the priority-4 melee/throw switch with its own combat
+     * goal (e.g. a caster that stands off and only melees at point-blank). Returning {@code null}
+     * (the default) keeps the normal melee/throw behavior driven by {@link #isRanged()}.
+     */
+    protected Goal getCombatGoalOverride() {
+        return null;
     }
 
     @Override

@@ -75,6 +75,14 @@ public class GMMItemTagsProvider extends ItemTagsProvider {
 		// Orc weapon pool: ship weak-vanilla defaults so Orcs are armed standalone; consumers add more.
 		tag(GMMTags.Items.ORC_WEAPONS).add(Items.STONE_SWORD, Items.STONE_AXE);
 
+		// Wight weapon pool: a modest sword + bow default (either melee or ranged, see
+		// Wight#reassessWeaponGoal) so it's armed standalone; consumers add their own additively.
+		tag(GMMTags.Items.WIGHT_WEAPONS).add(Items.IRON_SWORD, Items.STONE_SWORD, Items.BOW);
+
+		// Bodak gaze ward: carved pumpkin blocks Death Gaze, the same item vanilla Enderman already
+		// uses to ward off its own gaze-based aggro. Consumers add their own ward items additively.
+		tag(GMMTags.Items.BODAK_GAZE_WARD).add(Items.CARVED_PUMPKIN);
+
 		// Skeleton Champion weapon pool: an elite leader carries elite steel — diamond + netherite
 		// swords by default. Consumers add their own (fancier) weapons additively.
 		tag(GMMTags.Items.SKELETON_CHAMPION_WEAPONS).add(Items.DIAMOND_SWORD, Items.NETHERITE_SWORD);
