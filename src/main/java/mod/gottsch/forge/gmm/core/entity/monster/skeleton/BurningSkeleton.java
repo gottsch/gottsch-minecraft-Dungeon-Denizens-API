@@ -4,6 +4,7 @@ import mod.gottsch.forge.gmm.core.config.MobConfigHelper;
 import mod.gottsch.forge.gmm.core.entity.ai.goal.target.SummonedOwnerTargetGoal;
 import mod.gottsch.forge.gmm.core.entity.monster.GMMMonster;
 import mod.gottsch.forge.gmm.core.particle.GMMParticles;
+import mod.gottsch.forge.gmm.core.tag.GMMTags;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerLevel;
@@ -129,9 +130,19 @@ public class BurningSkeleton extends GMMMonster {
         return MobConfigHelper.get(this).flag("deathFireBlocks", true);
     }
 
-    /** A caught creature is anyone but us, our summoner, and our allies. */
+    /**
+     * A caught creature is anyone but us, our summoner, our allies, and anything tagged
+     * {@link GMMTags.EntityTypes#BURNING_SKELETON_IGNITE_IMMUNE}. {@code isAlliedTo} alone doesn't
+     * cover "don't burn fellow undead standing next to you": vanilla hostile mobs aren't on a
+     * scoreboard team by default, so two independently-spawned skeletons are never "allied" by that
+     * check even though thematically they're on the same side — the aura/bite/death-burst were
+     * igniting other skeletons (and any other undead, e.g. Wight/Bodak) standing nearby. gmm ships the
+     * tag empty; consumers populate it with their skeleton/undead roster (see e.g.
+     * {@code gmm:skeleton_champion/rally_allies} for the same "consumer owns the roster" idiom).
+     */
     private boolean canIgnite(LivingEntity entity) {
-        return entity != this && entity.isAlive() && entity != this.getSummonedOwner() && !this.isAlliedTo(entity);
+        return entity != this && entity.isAlive() && entity != this.getSummonedOwner()
+                && !this.isAlliedTo(entity) && !entity.getType().is(GMMTags.EntityTypes.BURNING_SKELETON_IGNITE_IMMUNE);
     }
 
     @Override

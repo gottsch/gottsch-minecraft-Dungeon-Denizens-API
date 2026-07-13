@@ -97,6 +97,13 @@ public class GMMTags {
         // fights, so this is a proximity broadcast, not a combat-acquired-target one.
         public static final TagKey<EntityType<?>> SHRIEKER_ALLIES = mod(GMM.MOD_ID, "shrieker/allies");
 
+        // mobs the Burning Skeleton's flame (aura pulse, melee bite, death burst) won't ignite --
+        // MobType/isAlliedTo alone don't cover "don't burn fellow undead standing next to you", since
+        // independently-spawned hostile mobs are never on a scoreboard team by default. Explicit tag
+        // instead of a getMobType() comparison so consumers control exactly who's ignite-immune rather
+        // than gmm silently exempting every MobType.UNDEAD mob in existence.
+        public static final TagKey<EntityType<?>> BURNING_SKELETON_IGNITE_IMMUNE = mod(GMM.MOD_ID, "burning_skeleton/ignite_immune");
+
         public static TagKey<EntityType<?>> mod(String domain, String path) {
             return TagKey.create(Registries.ENTITY_TYPE, new ResourceLocation(domain, path));
         }

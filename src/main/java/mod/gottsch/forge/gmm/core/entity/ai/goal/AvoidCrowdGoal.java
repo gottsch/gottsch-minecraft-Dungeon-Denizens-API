@@ -91,9 +91,14 @@ public class AvoidCrowdGoal extends Goal {
         // horizontal only — we walk, we don't levitate
         push = new Vec3(push.x, 0.0D, push.z);
         if (push.lengthSqr() < 1.0E-6D) {
-            // symmetric squeeze (no clear way out) — wait a beat and retry
-            this.cooldown = 20;
-            return false;
+            // symmetric squeeze: surrounded evenly enough that the repulsion vectors cancel out. This
+            // is exactly the "boxed into a knot" case the goal exists for, so falling through to "wait
+            // and retry" (the old behaviour) meant it silently never escaped a true ring formation --
+            // the vectors cancel again on the very next attempt since the ring hasn't changed. Pick a
+            // random horizontal bearing instead, so a symmetric surround still produces an escape
+            // attempt rather than a permanent no-op.
+            double angle = this.mob.getRandom().nextDouble() * (Math.PI * 2.0D);
+            push = new Vec3(Math.cos(angle), 0.0D, Math.sin(angle));
         }
 
         Vec3 spot = DefaultRandomPos.getPosTowards(this.mob, SEARCH_RADIUS, SEARCH_Y, push.normalize(),

@@ -53,9 +53,12 @@ public class SkeletonChampion extends GMMMonster {
 
     // Rally: how far the buff reaches, how often it re-applies, and how long each application lasts
     // (duration is kept a touch longer than the interval so a held pack stays buffed without flicker).
+    // Interval corrected 2026-07-13: 60 ticks (3s) made the champion re-trigger the war-cry burst
+    // constantly, reading as spammy rather than a periodic rally -- 200 ticks (10s) still keeps allies
+    // continuously buffed (duration 240 outlasts the interval) without the particle/sound spam.
     private static final double DEFAULT_RALLY_RANGE = 8.0D;
-    private static final int DEFAULT_RALLY_INTERVAL = 60;
-    private static final int DEFAULT_RALLY_DURATION = 80;
+    private static final int DEFAULT_RALLY_INTERVAL = 200;
+    private static final int DEFAULT_RALLY_DURATION = 240;
 
     // Spacing: how close a mob has to be to crowd the leader, how many it takes to make it reposition,
     // and how far from its target it's willing to stray while doing so (stays in the fight).
@@ -99,7 +102,12 @@ public class SkeletonChampion extends GMMMonster {
                 .add(Attributes.MAX_HEALTH, 40.0D)
                 .add(Attributes.MOVEMENT_SPEED, 0.25D)
                 .add(Attributes.ATTACK_DAMAGE, 6.0D)
-                .add(Attributes.ARMOR, 6.0D)
+                // the plate is baked into the rig/texture, not equipped ArmorItems (populateDefaultEquipmentSlots
+                // only ever fills MAINHAND) -- so the damage reduction has to come from the attribute
+                // directly. 15.0/0.0 matches a full vanilla iron armor set (2+6+5+2 armor, 0 toughness
+                // per piece) -- same "attribute-only baked armor" idiom IronSkeleton already uses.
+                .add(Attributes.ARMOR, 15.0D)
+                .add(Attributes.ARMOR_TOUGHNESS, 0.0D)
                 .add(Attributes.KNOCKBACK_RESISTANCE, 0.3D);
     }
 
@@ -208,8 +216,10 @@ public class SkeletonChampion extends GMMMonster {
         return SoundEvents.SKELETON_DEATH;
     }
 
+    // 1.74 (vanilla skeleton's eye height) * 1.2 -- matches the 1.2x hitbox/render scale DD's
+    // ModEntities/SkeletonChampionRenderer apply so the champion physically reads as bigger.
     @Override
     protected float getStandingEyeHeight(Pose pose, EntityDimensions dimensions) {
-        return 1.74F;
+        return 2.088F;
     }
 }

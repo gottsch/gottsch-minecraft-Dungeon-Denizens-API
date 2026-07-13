@@ -59,7 +59,7 @@ public class ElectricSparkParticle extends TextureSheetParticle {
 		// long enough to actually register the bolt (a too-short flash was invisible mid-swing),
 		// still snappy enough to read as lightning rather than a lingering mote
 		this.lifetime = 10 + this.random.nextInt(8);  // 10–17 ticks (~0.5–0.85s)
-		this.quadSize = 0.18F + this.random.nextFloat() * 0.10F;
+		this.quadSize = 0.32F + this.random.nextFloat() * 0.14F;
 		// a tiny crackle of motion around the spawn point (plus whatever tiny seed velocity was passed)
 		this.xd = dx + (this.random.nextDouble() - 0.5D) * 0.02D;
 		this.yd = dy + (this.random.nextDouble() - 0.5D) * 0.02D;
@@ -72,7 +72,11 @@ public class ElectricSparkParticle extends TextureSheetParticle {
 		super.tick();
 		if (!this.removed) {
 			this.setSpriteFromAge(this.sprites);         // advance the flicker frame
-			this.alpha = 1.0F - ((float) this.age / this.lifetime);  // fade out over its life
+			// hold near full brightness through most of its life, then snap-fade in the last
+			// 30% — a linear fade from spawn made the spark look dim/washed-out immediately,
+			// which was part of why the additive-blended bolt wasn't reading as electricity
+			float lifeFraction = (float) this.age / this.lifetime;
+			this.alpha = lifeFraction < 0.7F ? 1.0F : 1.0F - ((lifeFraction - 0.7F) / 0.3F);
 		}
 	}
 

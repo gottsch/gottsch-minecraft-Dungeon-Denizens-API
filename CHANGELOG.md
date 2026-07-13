@@ -15,6 +15,42 @@ ready-to-use monsters (oozes, zombies, undead, beholder-kin, orcs, and more) tha
 register and skin. GMM itself registers no `EntityType`s or items; it's infrastructure other mods
 build on top of.
 
+### Added
+
+- **Skeleton Champion** — dedicated Blockbench rig (`SkeletonChampionModel`/`SkeletonChampionRenderer`,
+  black-steel plated armor with brass/gold belt-buckle trim) replacing the earlier code-only
+  entity/AI, plus `ItemInHandLayer` so its tag-rolled weapon (`gmm:skeleton_champion/weapons`,
+  diamond/netherite by default) is actually visible. Renders/collides at 1.2x scale to read as
+  physically bigger than the rank-and-file skeletons it rallies, and its baked-in plate now carries a
+  flat `ARMOR 15.0`/`ARMOR_TOUGHNESS 0.0` (a full vanilla iron armor set's worth of reduction), since
+  it wears no real equippable armor pieces.
+- `gmm:burning_skeleton/ignite_immune` entity-type tag — mobs the Burning Skeleton's flame (aura
+  pulse, melee bite, death burst) won't ignite, on top of itself/its summoner/scoreboard allies.
+  `isAlliedTo()` alone doesn't cover "don't burn fellow undead standing next to you" since
+  independently-spawned hostile mobs are never on a team by default.
+- **Electric Skeleton** — dedicated Blockbench rig (`ElectricSkeletonModel`/`ElectricSkeletonRenderer`,
+  bent/jointed arms) replacing the earlier `SkeletonWarriorModel` reuse, with a forearm "electricity"
+  cuff on each arm that spins continuously around Y. Base texture's blue speckle veins recolored to
+  electric yellow; the cuffs' UV region (previously blank) painted with a jagged bolt. The head's
+  existing `GMMEyesLayer` overlay extended with matching lightning-crack accents. `ELECTRIC_SPARK`'s
+  particle sprites redone (were nearly transparent/pale, didn't read as electricity) with a jagged
+  bolt silhouette, larger `quadSize`, and a slower alpha fade.
+
+### Fixed
+
+- `AvoidCrowdGoal` (Skeleton Champion's crowd-spacing goal): a symmetric surround — allies pressing in
+  evenly on all sides — made the repulsion vectors cancel to ~zero, which the goal treated as "no
+  clear way out" and just waited, retrying the same doomed math every 20 ticks. That's exactly the
+  "boxed into a knot" case the goal exists for, so it effectively never fired when most needed. A
+  symmetric squeeze now falls back to a random escape bearing instead.
+- `SkeletonChampionModel#translateToHand` was missing the rig's `main` wrapper-group offset (this
+  Blockbench export wraps everything in a `main` group with its own `PartPose` translate, unlike
+  vanilla `HumanoidModel`'s zero-offset root), so the equipped weapon rendered ~1.5 blocks too high —
+  floating near the head instead of in the hand.
+- Skeleton Champion's rally buff pulsed every 60 ticks (3s), re-triggering the war-cry particle burst
+  constantly instead of reading as a periodic rally. Raised to 200 ticks (~10s), with duration raised
+  to 240 so allies still stay continuously buffed without the visible spam.
+
 ### Changed
 
 - moved IDenizensMonster, DenizensMonster to from Dungeons Denizens
