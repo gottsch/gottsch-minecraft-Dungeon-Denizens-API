@@ -1,6 +1,7 @@
 package mod.gottsch.forge.gmm.core.entity.monster;
 
 import mod.gottsch.forge.gmm.core.config.MobConfigHelper;
+import mod.gottsch.forge.gmm.core.effect.GMMMobEffects;
 import mod.gottsch.forge.gmm.core.entity.ai.goal.target.SummonedOwnerTargetGoal;
 import mod.gottsch.forge.gmm.core.particle.GMMParticles;
 import mod.gottsch.forge.gmm.core.tag.GMMTags;
@@ -51,10 +52,14 @@ import java.util.List;
  * (default {@code 1.0}, baked in once at spawn and synced — see {@link #finalizeSpawn}), the same
  * opt-in-override pattern as {@link GMMMonster}'s vanilla-attribute overrides.
  * <p>
- * On a successful hit it "engulfs" the target: an instant yank to a stop (zeroed horizontal velocity —
- * the "root"), vanilla Slowness for a lingering sluggishness, and vanilla Poison standing in for an
- * acid damage-over-time (the same vanilla-effect-as-flavor approach {@code ParalysisSpell}/{@code
- * Bloater} already use). A conservative gear-durability nibble is a separate, independently toggleable
+ * On a successful hit it "engulfs" the target: an instant yank to a stop (zeroed horizontal velocity),
+ * then a genuine brief hold — {@link GMMMobEffects#PARALYZED} (the same full-movement-root effect
+ * {@code ParalysisSpell} uses, see {@code holdDuration}) — so the target actually can't move for a
+ * moment, not just a single-tick zero. Vanilla Slowness (a longer, lingering sluggishness) and vanilla
+ * Poison (standing in for an acid damage-over-time, the same vanilla-effect-as-flavor approach
+ * {@code ParalysisSpell}/{@code Bloater} already use) both start on the same hit but outlast the hold,
+ * so once {@code PARALYZED} expires the target reads as "wriggling free" — slowed, not fully stuck —
+ * for the remainder. A conservative gear-durability nibble is a separate, independently toggleable
  * flourish on top, reusing {@code AcidSkeleton}'s corrosion pattern (and its shared
  * {@link GMMTags.Items#CORROSION_IMMUNE} tag) almost verbatim.
  *
@@ -67,7 +72,8 @@ public class GelatinousCube extends GMMMonster {
     private static final float TRAIL_G = 0.59F;
     private static final float TRAIL_B = 0.39F;
 
-    private static final int DEFAULT_SLOWNESS_DURATION = 100;  // 5s
+    private static final int DEFAULT_HOLD_DURATION = 20;       // 1s — the genuine "held" window
+    private static final int DEFAULT_SLOWNESS_DURATION = 100;  // 5s — outlasts the hold ("wriggling free")
     private static final int DEFAULT_SLOWNESS_AMPLIFIER = 1;   // Slowness II
     private static final int DEFAULT_ACID_DURATION = 60;       // 3s
     private static final int DEFAULT_ACID_AMPLIFIER = 0;       // Poison I
@@ -224,13 +230,22 @@ public class GelatinousCube extends GMMMonster {
         return hurt;
     }
 
-    /** "Engulfs" a hit target: an instant root, lingering Slowness, an acid DoT, and an optional gear nibble. */
+    /**
+     * "Engulfs" a hit target: an instant yank to a stop, a brief genuine hold ({@code holdDuration}
+     * ticks of {@link GMMMobEffects#PARALYZED}), then a longer, lingering Slowness + acid DoT that
+     * outlasts the hold, and an optional gear nibble.
+     */
     private void engulf(LivingEntity target) {
         if (!MobConfigHelper.get(this).flag("engulf", true)) {
             return;
         }
-        // the root: an instant yank to a stop rather than a persistent per-tick override
+        // an instant yank to a stop, so no residual momentum carries the target out of the hold below
         target.setDeltaMovement(0.0D, target.getDeltaMovement().y, 0.0D);
+
+        int holdDuration = (int) MobConfigHelper.get(this).number("holdDuration", DEFAULT_HOLD_DURATION);
+        if (holdDuration > 0) {
+            target.addEffect(new MobEffectInstance(GMMMobEffects.PARALYZED.get(), holdDuration, 0, false, true, true), this);
+        }
 
         int slownessDuration = (int) MobConfigHelper.get(this).number("slownessDuration", DEFAULT_SLOWNESS_DURATION);
         int slownessAmplifier = (int) MobConfigHelper.get(this).number("slownessAmplifier", DEFAULT_SLOWNESS_AMPLIFIER);

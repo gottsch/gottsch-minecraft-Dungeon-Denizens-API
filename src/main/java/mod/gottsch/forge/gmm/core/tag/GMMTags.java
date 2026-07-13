@@ -93,6 +93,10 @@ public class GMMTags {
         public static final TagKey<EntityType<?>> WIGHT_SUMMON_ALLIES = mod(GMM.MOD_ID, "wight/summon_allies");
         public static final TagKey<EntityType<?>> WIGHT_ENTHRALL_CANDIDATES = mod(GMM.MOD_ID, "wight/enthrall_candidates");
 
+        // mobs a Shrieker alerts (via AllyAlertUtil) when it pulses on a nearby player -- Shrieker never
+        // fights, so this is a proximity broadcast, not a combat-acquired-target one.
+        public static final TagKey<EntityType<?>> SHRIEKER_ALLIES = mod(GMM.MOD_ID, "shrieker/allies");
+
         public static TagKey<EntityType<?>> mod(String domain, String path) {
             return TagKey.create(Registries.ENTITY_TYPE, new ResourceLocation(domain, path));
         }

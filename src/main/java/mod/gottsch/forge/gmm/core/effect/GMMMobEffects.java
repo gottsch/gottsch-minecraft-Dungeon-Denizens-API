@@ -37,6 +37,32 @@ public class GMMMobEffects {
                     .addAttributeModifier(Attributes.MAX_HEALTH, "f22b1e0a-6d1e-4e0a-9b1a-6b2c1a9d5e3a",
                             -2.0D, AttributeModifier.Operation.ADDITION));
 
+    /**
+     * A pure marker effect -- no attribute modifiers, no vanilla behavior -- applied by {@code Shrieker}
+     * instead of vanilla {@code MobEffects.DARKNESS}. Vanilla Darkness has no partial-intensity control:
+     * its client-side screen shader always ramps to full peak opacity while active, regardless of
+     * amplifier. Using GMM's own marker effect instead lets {@code core.client.ShriekerDarknessOverlay}
+     * draw a capped-opacity black overlay keyed off this effect's presence/remaining duration, without
+     * vanilla's own Darkness renderer ever getting involved.
+     */
+    public static final RegistryObject<MobEffect> SHRIEKER_DARKNESS = EFFECTS.register("shrieker_darkness",
+            () -> new MobEffect(MobEffectCategory.HARMFUL, 0x1A0D24) {});
+
+    /**
+     * A brief, full movement root -- Beholderkin's Paralysis eye ray (see {@code ParalysisSpell}).
+     * Unlike vanilla Slowness (a partial speed reduction that still reads as "Slowness" in the HUD),
+     * this zeroes {@link Attributes#MOVEMENT_SPEED} outright via a {@code MULTIPLY_TOTAL -1.0}
+     * modifier -- the standard "full stop" attribute trick, same mechanism as {@link #WITHERED}'s
+     * health drain, just applied to a different attribute -- so a struck target genuinely can't walk
+     * for the duration. Deliberately its own effect/name rather than vanilla Slowness dressed up:
+     * a target-can't-move root is a materially different mechanic, fitting for the "generally
+     * powerful beings" (Beholder/Gazer/DeathTyrant/Spectator) that cast it.
+     */
+    public static final RegistryObject<MobEffect> PARALYZED = EFFECTS.register("paralyzed",
+            () -> new MobEffect(MobEffectCategory.HARMFUL, 0x8B2FC9) {}
+                    .addAttributeModifier(Attributes.MOVEMENT_SPEED, "b7b0b1b2-9c3d-4e2a-8f1a-2d6e4c9a7b1f",
+                            -1.0D, AttributeModifier.Operation.MULTIPLY_TOTAL));
+
     /** Called from the GMM constructor to attach the registry to the mod event bus. */
     public static void register(IEventBus modEventBus) {
         EFFECTS.register(modEventBus);

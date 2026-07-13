@@ -18,6 +18,7 @@
 package mod.gottsch.forge.gmm.core.entity.projectile;
 
 import mod.gottsch.forge.gmm.core.config.MobConfigHelper;
+import mod.gottsch.forge.gmm.core.effect.GMMMobEffects;
 import net.minecraft.Util;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleTypes;
@@ -27,7 +28,6 @@ import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.effect.MobEffectInstance;
-import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
@@ -42,9 +42,15 @@ import net.minecraft.world.phys.HitResult;
 import java.util.function.Supplier;
 
 /**
- * A slowness/paralysis spell. Damage + slowness duration are read from the {@code gmm:mob_config}
- * codec (keyed by this projectile's registered type id). The in-flight visual item is supplied by
- * the consumer via {@link #itemSupplier}.
+ * A brief, full-movement-root paralysis spell -- applies {@link GMMMobEffects#PARALYZED}, not
+ * vanilla Slowness, so a struck target genuinely can't walk for the duration rather than just
+ * moving slower (fitting for the "generally powerful beings" -- Beholder/Gazer/DeathTyrant/
+ * Spectator -- that cast it). Damage + root duration are read from the {@code gmm:mob_config}
+ * codec (keyed by this projectile's registered type id, {@code slow}); the fallback default
+ * duration below is deliberately short (30 ticks / 1.5s, down from the old 200-tick Slowness
+ * default) since a full root is much stronger than a partial speed reduction. The in-flight
+ * visual item is supplied by the consumer via
+ * {@link #itemSupplier}.
  *
  * @author Mark Gottschling on 7/2/2026
  */
@@ -86,7 +92,8 @@ public class ParalysisSpell extends GMMHurtingProjectile implements ItemSupplier
 			target.hurt(level().damageSources().indirectMagic(this, ownerEntity), (int) MobConfigHelper.get(this).number("damage", 2.0));
 
 			if (target instanceof LivingEntity) {
-				((LivingEntity)target).addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, (int) MobConfigHelper.get(this).number("duration", 200.0), 0), this);
+				int duration = (int) MobConfigHelper.get(this).number("duration", 30.0);
+				((LivingEntity)target).addEffect(new MobEffectInstance(GMMMobEffects.PARALYZED.get(), duration, 0, false, true, true), this);
 				this.doEnchantDamageEffects((LivingEntity)ownerEntity, target);
 			}
 		}

@@ -9,5 +9,7 @@
   "subtitles.gmm.entity.shadowlord.step": "Shadowlord steps",
   "subtitles.gmm.entity.wing.flap": "Wings flap",
   "subtitles.gmm.entity.mimic.ambient": "Mimic rattles",
-  "effect.gmm.withered": "Withered"
+  "effect.gmm.withered": "Withered",
+  "effect.gmm.shrieker_darkness": "Shrieker's Darkness",
+  "effect.gmm.paralyzed": "Paralyzed"
 }

@@ -2,18 +2,14 @@ package mod.gottsch.forge.gmm.core.entity.ai.goal.target;
 
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.EntitySelector;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.PathfinderMob;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.ai.goal.target.TargetGoal;
 import net.minecraft.world.entity.ai.targeting.TargetingConditions;
 import net.minecraft.world.level.GameRules;
-import net.minecraft.world.phys.AABB;
 
 import java.util.EnumSet;
-import java.util.List;
 
 /**
  * Like vanilla HurtByTargetGoal, but its "alert allies" set is data-driven: any nearby mob
@@ -27,7 +23,6 @@ import java.util.List;
  */
 public class AllyAlertHurtByTargetGoal extends TargetGoal {
     private static final TargetingConditions HURT_BY_TARGETING = TargetingConditions.forCombat().ignoreLineOfSight().ignoreInvisibilityTesting();
-    private static final int ALERT_RANGE_Y = 10;
 
     private final TagKey<EntityType<?>> allyTag;
     private final Class<?>[] toIgnoreDamage;
@@ -71,17 +66,6 @@ public class AllyAlertHurtByTargetGoal extends TargetGoal {
     }
 
     protected void alertOthers() {
-        double distance = this.getFollowDistance();
-        AABB aabb = AABB.unitCubeFromLowerCorner(this.mob.position()).inflate(distance, ALERT_RANGE_Y, distance);
-        List<? extends Mob> list = this.mob.level().getEntitiesOfClass(Mob.class, aabb, EntitySelector.NO_SPECTATORS);
-        for (Mob otherMob : list) {
-            if (this.mob != otherMob && otherMob.getTarget() == null && otherMob.getType().is(this.allyTag)) {
-                alertOther(otherMob, this.mob.getLastHurtByMob());
-            }
-        }
-    }
-
-    protected void alertOther(Mob otherMob, LivingEntity target) {
-        otherMob.setTarget(target);
+        AllyAlertUtil.alertNearby(this.mob, this.mob.getLastHurtByMob(), this.getFollowDistance(), this.allyTag);
     }
 }

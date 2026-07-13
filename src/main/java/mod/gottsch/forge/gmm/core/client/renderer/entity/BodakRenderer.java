@@ -11,12 +11,13 @@ import net.minecraft.client.renderer.entity.layers.HumanoidArmorLayer;
 import net.minecraft.resources.ResourceLocation;
 
 /**
- * Renders the Bodak on the vanilla {@link ModelLayers#ZOMBIE} rig (the ashen recolor texture originally
- * authored for Wight -- see {@code Bodak}'s class doc) via {@link BodakModel}, which overlays a
- * Death-Gaze-charge-driven head jerk on top of the shared {@code GMMZombieModel} pose -- no new layer
- * definition needed, just a thin model subclass (same shape as {@code WightModel}/{@code GraveZombieModel}).
- * No glowing-eyes layer yet (Bodak's "milky white" eyes from the 5e flavor text would need a new
- * {@code layer/bodak_eyes.png} asset, not built this pass).
+ * Renders the Bodak on its own dedicated {@link BodakModel#LAYER_LOCATION} rig -- a Blockbench-authored
+ * variant of the vanilla zombie proportions adding a permanently agape "silent scream" mouth cube (see
+ * {@link BodakModel}'s class doc), bare-chested (no baked-in shirt/sleeves, unlike the vanilla-zombie
+ * texture every other GMM zombie variant recolors) -- which also overlays a Death-Gaze-charge-driven
+ * head jerk on top of the shared {@code GMMZombieModel} pose. No glowing-eyes layer yet (Bodak's "milky
+ * white" eyes from the 5e flavor text would need a new {@code layer/bodak_eyes.png} asset, not built
+ * this pass).
  *
  * @author Mark Gottschling on 7/10/2026
  */
@@ -24,7 +25,7 @@ public class BodakRenderer<T extends Bodak> extends HumanoidMobRenderer<T, Bodak
 	private static final ResourceLocation TEXTURE = new ResourceLocation(GMM.MOD_ID, "textures/entity/bodak.png");
 
 	public BodakRenderer(EntityRendererProvider.Context context) {
-		super(context, new BodakModel<>(context.bakeLayer(ModelLayers.ZOMBIE)), 0.5F);
+		super(context, new BodakModel<>(context.bakeLayer(BodakModel.LAYER_LOCATION)), 0.5F);
 		this.addLayer(
 				new HumanoidArmorLayer<>(this, new HumanoidModel<>(context.bakeLayer(ModelLayers.ZOMBIE_INNER_ARMOR)),
 						new HumanoidModel<>(context.bakeLayer(ModelLayers.ZOMBIE_OUTER_ARMOR)),

@@ -80,9 +80,13 @@ import java.util.UUID;
  * after each cast -- the goal has no cooldown by default (it can start recharging the instant a cast
  * completes), which read as firing too rapidly.
  *
- * <p>Not yet built: Aura of Annihilation (flagged stretch in the catalog), and the permanently gaping
- * "silent scream" mouth from the 5e flavor text (a rig/texture change, separate scope from the charge
- * telegraph) -- see {@code gmm-forge-1.20.1-MobIdeasCatalog.md}'s "Bodak" entry for the full plan.
+ * <p>Aura of Annihilation (built 2026-07-12) folds directly into the Death Gaze windup rather than
+ * running as its own toggle-driven ability: while a charge is building, any non-warded player within
+ * {@link #auraRadius()} takes a small necrotic trickle scaling with {@link #getGazeCharge()} (see
+ * {@link #tickAuraOfAnnihilation()}), telegraphed client-side by the same black smoke used at the
+ * mouth/eyes now also rising from the ground in a ring around the Bodak (see {@link #aiStep()}) --
+ * the ring sits at the aura's actual radius, so it doubles as a readable boundary rather than an
+ * invisible damage source, and only appears while a charge is actually building (never at rest).
  *
  * @author Mark Gottschling on 7/10/2026
  */
@@ -111,6 +115,13 @@ public class Bodak extends GMMMonster {
     // Sunlight: bonus instant damage per sunburn proc, and the movement-speed burst while burning.
     private static final double DEFAULT_SUN_BONUS_DAMAGE = 2.0D;
     private static final double DEFAULT_SUN_PANIC_SPEED_BOOST = 0.12D; // ~+50% of DEFAULT_MOVEMENT_SPEED
+
+    // Aura of Annihilation: folded into the Death Gaze windup (see class doc) rather than an independent
+    // toggle -- radius the ring telegraph/damage applies at, damage per pulse at FULL charge (scaled down
+    // by current charge otherwise), and how often a pulse can land while a charge is building.
+    private static final double DEFAULT_AURA_RADIUS = 3.0D;
+    private static final double DEFAULT_AURA_DAMAGE = 1.0D;
+    private static final int DEFAULT_AURA_INTERVAL_TICKS = 20; // ~1s between pulses
 
     // Head-jerk telegraph (BodakModel, client-side only) -- angle range (degrees) scales with gaze
     // charge; the snap cadence (ticks) is fixed, not charge-scaled -- see BodakModel's class doc for why.
@@ -230,6 +241,23 @@ public class Bodak extends GMMMonster {
 
     private double sunPanicSpeedBoost() {
         return MobConfigHelper.get(this).number("sunPanicSpeedBoost", DEFAULT_SUN_PANIC_SPEED_BOOST);
+    }
+
+    private boolean auraEnabled() {
+        return MobConfigHelper.get(this).flag("auraOfAnnihilation", true);
+    }
+
+    /** Radius the Aura of Annihilation's damage/ring telegraph applies at -- public, read client-side by {@link #aiStep()}. */
+    public double auraRadius() {
+        return MobConfigHelper.get(this).number("auraRadius", DEFAULT_AURA_RADIUS);
+    }
+
+    private double auraDamage() {
+        return MobConfigHelper.get(this).number("auraDamage", DEFAULT_AURA_DAMAGE);
+    }
+
+    private int auraIntervalTicks() {
+        return (int) MobConfigHelper.get(this).number("auraIntervalTicks", DEFAULT_AURA_INTERVAL_TICKS);
     }
 
     // Public (not the usual private-codec-accessor style) since these are read cross-package by
@@ -446,6 +474,42 @@ public class Bodak extends GMMMonster {
     protected void customServerAiStep() {
         super.customServerAiStep();
         tickDeathGaze();
+        tickAuraOfAnnihilation();
+    }
+
+    /**
+     * Aura of Annihilation, folded into the Death Gaze windup rather than run as its own toggle (see
+     * class doc) -- only ever active while {@link #getGazeCharge()} is above zero, i.e. exactly the
+     * window the ground-ring smoke telegraph in {@link #aiStep()} is visible for. Pulses on a fixed
+     * cadence ({@link #auraIntervalTicks()}) rather than every tick, so it reads as a "trickle," not a
+     * single big continuous drain -- each pulse's damage scales with the current charge (0..1), so it
+     * ramps up right alongside the ring's own growing intensity. Reuses {@code GMMDamageTypes.DEATH_GAZE}
+     * rather than a dedicated damage type -- it's explicitly part of Death Gaze's own windup, not a
+     * separate ability with its own death-message flavor. Same non-creative/non-spectator player scope as
+     * Death Gaze itself ({@link #findLooker()}); does not require line of sight or looking at the Bodak
+     * at all, only proximity.
+     */
+    private void tickAuraOfAnnihilation() {
+        if (!auraEnabled()) {
+            return;
+        }
+        float charge = getGazeCharge();
+        if (charge <= 0.0F) {
+            return;
+        }
+        if (this.tickCount % Math.max(1, auraIntervalTicks()) != 0) {
+            return;
+        }
+        List<Player> nearby = this.level().getEntitiesOfClass(Player.class,
+                this.getBoundingBox().inflate(auraRadius()), EntitySelector.NO_CREATIVE_OR_SPECTATOR);
+        if (nearby.isEmpty()) {
+            return;
+        }
+        DamageSource source = GMMDamageTypes.source(this.level(), GMMDamageTypes.DEATH_GAZE);
+        float damage = (float) (auraDamage() * charge);
+        for (Player player : nearby) {
+            player.hurt(source, damage);
+        }
     }
 
     @Override
@@ -464,6 +528,28 @@ public class Bodak extends GMMMonster {
             if (this.random.nextInt(chance) == 0) {
                 Vec3 eyes = facePosition(0.03D, 0.30D);
                 this.level().addParticle(ParticleTypes.SMOKE, eyes.x, eyes.y, eyes.z, 0.0D, 0.02D, 0.0D);
+            }
+            // Aura of Annihilation telegraph: the same black smoke rising from the ground in a ring at
+            // the aura's own radius -- only while a gaze charge is actually building (never at rest,
+            // unlike the mouth/eye wisps above). Unlike those two single-particle-per-roll anchors, this
+            // spawns a full spread of points around the ring every tick -- a single random dot per roll
+            // (the first pass) was too sparse to read as a "ring" at all against a 3+ block circle;
+            // multiple evenly-spaced points (with light per-point jitter so it doesn't look like a rigid
+            // polygon) plus a per-tick rotating base angle read immediately as a boiling ring instead.
+            // Point count scales 4..10 with charge (denser as it builds); radius itself stays fixed (not
+            // charge-scaled) so the ring is always an honest boundary cue -- see
+            // Bodak#tickAuraOfAnnihilation() for the matching server-side damage.
+            if (charge > 0.0F) {
+                int ringPoints = 4 + (int) (charge * 6.0F);
+                double ringRadius = auraRadius();
+                double baseAngle = this.random.nextDouble() * Math.PI * 2.0D;
+                for (int i = 0; i < ringPoints; i++) {
+                    double angle = baseAngle + (Math.PI * 2.0D * i / ringPoints) + (this.random.nextDouble() - 0.5D) * 0.3D;
+                    double px = this.getX() + Math.cos(angle) * ringRadius;
+                    double pz = this.getZ() + Math.sin(angle) * ringRadius;
+                    this.level().addParticle(ParticleTypes.SMOKE, px, this.getY() + 0.05D, pz,
+                            0.0D, 0.02D + charge * 0.03D, 0.0D);
+                }
             }
             // full-body fire + white ash-smoke burst while sun-exposed -- deliberately FLAME/
             // CAMPFIRE_COSY_SMOKE (orange fire, pale-white smoke), not the black SMOKE the ambient

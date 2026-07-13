@@ -1,15 +1,43 @@
 package mod.gottsch.forge.gmm.core.client.model;
 
+import mod.gottsch.forge.gmm.core.GMM;
 import mod.gottsch.forge.gmm.core.entity.monster.zombie.Bodak;
+import net.minecraft.client.model.geom.ModelLayerLocation;
 import net.minecraft.client.model.geom.ModelPart;
+import net.minecraft.client.model.geom.PartPose;
+import net.minecraft.client.model.geom.builders.CubeDeformation;
+import net.minecraft.client.model.geom.builders.CubeListBuilder;
+import net.minecraft.client.model.geom.builders.LayerDefinition;
+import net.minecraft.client.model.geom.builders.MeshDefinition;
+import net.minecraft.client.model.geom.builders.PartDefinition;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 
 /**
- * The Bodak rig: the shared {@link GMMZombieModel} zombie rig, plus a head-only jerk/twitch overlaid on
- * top of the normal look-tracking pose while a Death Gaze charge is building -- the "jerky and
- * puppet-like, as though guided by an unseen, malevolent force" movement is part of the creature's
- * actual D&amp;D description (along with its permanently gaping "silent scream" mouth, a separate,
- * not-yet-built rig/texture change -- see {@code Bodak}'s class doc), not an invented tell.
+ * The Bodak rig: ported from the user's own Blockbench build (bare-chested, no shirt/sleeves -- the
+ * vanilla zombie's baked-in clothing is gone entirely) at
+ * {@code Blockbench/dungeon denizens/forge/bodak/Bodak.bbmodel}/{@code BodakModel.java}. Same vanilla
+ * zombie proportions as {@link GMMZombieModel} (this still extends it, keeping the shared arms-out
+ * shamble via {@link #animateArms}), but now with its **own** {@link #createBodyLayer()} rather than
+ * reusing {@code ModelLayers.ZOMBIE} -- the source rig adds one genuinely new cube, a permanently
+ * agape "silent scream" mouth (the D&amp;D flavor text's other defining feature, alongside the
+ * jerky-puppet movement below). Ported as a real child of {@code head} (not merged onto the same
+ * {@code CubeListBuilder} the raw export used) so it automatically inherits both vanilla's
+ * look-tracking rotation and this class's own jerk {@code zRot} below with zero extra code -- no
+ * separate copy-pose call needed, unlike {@code hat} (see {@link #setupAnim}).
+ *
+ * <p>The mouth UV rect tracks the source {@code .bbmodel} exactly and has moved twice already --
+ * {@code (-1, 32)} in the original export, then {@code (0, 33)} after the user enlarged the jaw in
+ * Blockbench (which pushed the box's auto-laid-out UV off the texture map), found the mistake, and
+ * repositioned both the texture content and the UV offset (2026-07-12). Always pull this value from the
+ * current {@code .bbmodel}/exported {@code BodakModel.java} at
+ * {@code Blockbench/dungeon denizens/forge/bodak/} rather than assuming it's stable -- this is the one
+ * coordinate in this class that must stay byte-for-byte identical to whatever Blockbench currently
+ * exports, not a place to "clean up" what looks like an odd offset.
+ *
+ * <p>Also overlays a head-only jerk/twitch on top of the normal look-tracking pose while a Death Gaze
+ * charge is building -- the "jerky and puppet-like, as though guided by an unseen, malevolent force"
+ * movement is part of the creature's actual D&amp;D description, not an invented tell.
  *
  * <p>Deliberately isolated to a single axis (head roll, {@code zRot}) on a single part: vanilla's own
  * look-tracking already drives the head's yaw/pitch, so "eye contact" with whoever it's charging at is
@@ -40,8 +68,50 @@ import net.minecraft.util.Mth;
  */
 public class BodakModel<T extends Bodak> extends GMMZombieModel<T> {
 
+    public static final ModelLayerLocation LAYER_LOCATION = new ModelLayerLocation(new ResourceLocation(GMM.MOD_ID, "bodak"), "main");
+
     public BodakModel(ModelPart root) {
         super(root);
+    }
+
+    public static LayerDefinition createBodyLayer() {
+        MeshDefinition meshdefinition = new MeshDefinition();
+        PartDefinition partdefinition = meshdefinition.getRoot();
+
+        PartDefinition head = partdefinition.addOrReplaceChild("head",
+                CubeListBuilder.create().texOffs(0, 0).addBox(-4.0F, -8.0F, -4.0F, 8.0F, 8.0F, 8.0F, CubeDeformation.NONE),
+                PartPose.offset(0.0F, 0.0F, 0.0F));
+        // agape "silent scream" mouth -- a real child of head, see class doc for why (auto-inherits
+        // both look-tracking and the jerk zRot below, unlike the raw export's merged-box approach).
+        head.addOrReplaceChild("mouth",
+                CubeListBuilder.create().texOffs(0, 33).addBox(-2.5F, 0.0F, -4.0F, 5.0F, 3.0F, 3.0F, CubeDeformation.NONE),
+                PartPose.offset(0.0F, 0.0F, 0.0F));
+
+        partdefinition.addOrReplaceChild("hat",
+                CubeListBuilder.create().texOffs(32, 0).addBox(-4.0F, -8.0F, -4.0F, 8.0F, 8.0F, 8.0F, CubeDeformation.NONE.extend(0.5F)),
+                PartPose.offset(0.0F, 0.0F, 0.0F));
+
+        partdefinition.addOrReplaceChild("body",
+                CubeListBuilder.create().texOffs(16, 16).addBox(-4.0F, 0.0F, -2.0F, 8.0F, 12.0F, 4.0F, CubeDeformation.NONE),
+                PartPose.offset(0.0F, 0.0F, 0.0F));
+
+        partdefinition.addOrReplaceChild("right_arm",
+                CubeListBuilder.create().texOffs(40, 16).addBox(-3.0F, -2.0F, -2.0F, 4.0F, 12.0F, 4.0F, CubeDeformation.NONE),
+                PartPose.offset(-5.0F, 2.0F, 0.0F));
+
+        partdefinition.addOrReplaceChild("left_arm",
+                CubeListBuilder.create().texOffs(40, 16).mirror().addBox(-1.0F, -2.0F, -2.0F, 4.0F, 12.0F, 4.0F, CubeDeformation.NONE).mirror(false),
+                PartPose.offset(5.0F, 2.0F, 0.0F));
+
+        partdefinition.addOrReplaceChild("right_leg",
+                CubeListBuilder.create().texOffs(0, 16).addBox(-2.1F, 0.0F, -2.0F, 4.0F, 12.0F, 4.0F, CubeDeformation.NONE),
+                PartPose.offset(-1.9F, 12.0F, 0.0F));
+
+        partdefinition.addOrReplaceChild("left_leg",
+                CubeListBuilder.create().texOffs(0, 16).mirror().addBox(-1.9F, 0.0F, -2.0F, 4.0F, 12.0F, 4.0F, CubeDeformation.NONE).mirror(false),
+                PartPose.offset(1.9F, 12.0F, 0.0F));
+
+        return LayerDefinition.create(meshdefinition, 64, 64);
     }
 
     @Override
