@@ -95,5 +95,19 @@ public class GMMItemTagsProvider extends ItemTagsProvider {
 				Items.DIAMOND_SWORD, Items.DIAMOND_AXE, Items.DIAMOND_PICKAXE, Items.DIAMOND_SHOVEL, Items.DIAMOND_HOE,
 				Items.NETHERITE_HELMET, Items.NETHERITE_CHESTPLATE, Items.NETHERITE_LEGGINGS, Items.NETHERITE_BOOTS,
 				Items.NETHERITE_SWORD, Items.NETHERITE_AXE, Items.NETHERITE_PICKAXE, Items.NETHERITE_SHOVEL, Items.NETHERITE_HOE);
+
+		// Animated Armor: a modest iron-tier default so a spawned suit is fully equipped standalone;
+		// consumers add their own armor sets additively.
+		tag(GMMTags.Items.ANIMATED_ARMOR_HELMETS).add(Items.IRON_HELMET, Items.CHAINMAIL_HELMET);
+		tag(GMMTags.Items.ANIMATED_ARMOR_CHESTPLATES).add(Items.IRON_CHESTPLATE, Items.CHAINMAIL_CHESTPLATE);
+		tag(GMMTags.Items.ANIMATED_ARMOR_LEGGINGS).add(Items.IRON_LEGGINGS, Items.CHAINMAIL_LEGGINGS);
+		tag(GMMTags.Items.ANIMATED_ARMOR_BOOTS).add(Items.IRON_BOOTS, Items.CHAINMAIL_BOOTS);
+
+		// Animated Weapon: swords + axes across the common tiers, so a spawned instance is armed
+		// standalone; consumers add their own weapons additively.
+		tag(GMMTags.Items.ANIMATED_WEAPON_WEAPONS).add(
+				Items.IRON_SWORD, Items.IRON_AXE,
+				Items.STONE_SWORD, Items.STONE_AXE,
+				Items.DIAMOND_SWORD, Items.DIAMOND_AXE);
 	}
 }

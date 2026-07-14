@@ -35,6 +35,22 @@ build on top of.
   existing `GMMEyesLayer` overlay extended with matching lightning-crack accents. `ELECTRIC_SPARK`'s
   particle sprites redone (were nearly transparent/pale, didn't read as electricity) with a jagged
   bolt silhouette, larger `quadSize`, and a slower alpha fade.
+- **Animated Armor** — new construct (`core/entity/monster/construct/AnimatedArmor`): a disguised
+  stand of equipped vanilla armor with no wearer, dormant until a player wanders close
+  (`ProximityActivateGoal`, new, throttled the same way `GraveZombie`'s own dormant-scan is) or hits
+  it. Rendered as a fully transparent `HumanoidModel` plus the standard `HumanoidArmorLayer` — no
+  dedicated rig, the equipped armor is the entire visual. Rolls a full 4-slot set from new
+  `gmm:animated_armor/{helmets,chestplates,leggings,boots}` tags; the chestplate slot specifically can
+  never roll empty, since it's the one piece that makes the arm sleeves (and thus a swinging attack)
+  visible. Never natural-spawns, same treatment as the two Mimics. `GatedGoal` extracted out of
+  `Mimic` into its own reusable class as part of this (Mimic's own doc had flagged this as the
+  intended next step).
+- **Animated Weapon** — new construct (`core/entity/monster/construct/AnimatedWeapon`): a masterless
+  floating sword/axe with a body-less rig (`AnimatedWeaponModel`, an invisible pivot the equipped
+  weapon hangs off via `ItemInHandLayer`) that hovers, faces its target, and attacks with a real
+  windup telegraph (`isWindingUp()`, 15 ticks, `ParticleTypes.CRIT` sparks, smoothly blended via a
+  partial-tick-interpolated `getWindupProgress`) rather than vanilla's own too-short/non-lengthenable
+  swing animation. Unlike Animated Armor this natural-spawns (dark/dungeon biomes).
 
 ### Fixed
 
@@ -50,6 +66,10 @@ build on top of.
 - Skeleton Champion's rally buff pulsed every 60 ticks (3s), re-triggering the war-cry particle burst
   constantly instead of reading as a periodic rally. Raised to 200 ticks (~10s), with duration raised
   to 240 so allies still stay continuously buffed without the visible spam.
+- `GraveZombie`: a hand-placed grave anchored via `restrictTo()` kept trying to wander back to its own
+  plot mid-fight, since vanilla's wander goals consult `isWithinRestriction` for candidate positions.
+  Now ignores the restriction radius entirely once `PHASE_ACTIVE` (despawn-immunity and the
+  rise-in-place behavior are untouched, only movement was affected).
 
 ### Changed
 

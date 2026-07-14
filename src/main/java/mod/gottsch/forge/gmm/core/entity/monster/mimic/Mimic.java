@@ -1,5 +1,6 @@
 package mod.gottsch.forge.gmm.core.entity.monster.mimic;
 
+import mod.gottsch.forge.gmm.core.entity.ai.goal.GatedGoal;
 import mod.gottsch.forge.gmm.core.entity.ai.goal.target.SummonedOwnerTargetGoal;
 import mod.gottsch.forge.gmm.core.entity.monster.GMMMonster;
 import mod.gottsch.forge.gmm.core.sound.GMMSounds;
@@ -33,7 +34,6 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.resources.ResourceLocation;
 
 import javax.annotation.Nullable;
-import java.util.function.BooleanSupplier;
 import java.util.function.Supplier;
 
 /**
@@ -135,9 +135,9 @@ public abstract class Mimic extends GMMMonster {
         this.targetSelector.addGoal(2, gated(new NearestAttackableTargetGoal<>(this, Player.class, true, playerNotOwner)));
     }
 
-    /** Wraps any goal so it can't {@code canUse()}/{@code canContinueToUse()} while still disguised.
-     * Kept private/local to {@code Mimic} for now since it has exactly one consumer — see
-     * {@link GatedGoal}'s class doc for why this isn't extracted to a shared package yet. */
+    /** Wraps any goal so it can't {@code canUse()}/{@code canContinueToUse()} while still disguised —
+     * a thin convenience around the shared {@link GatedGoal} (extracted from this class once
+     * {@code AnimatedArmor} needed the identical "every goal is inert until a flag flips" shape). */
     private Goal gated(Goal delegate) {
         return new GatedGoal(delegate, this::isActive);
     }
@@ -301,65 +301,4 @@ public abstract class Mimic extends GMMMonster {
         }
     }
 
-    /**
-     * Delegates every {@link Goal} method to a wrapped instance, but only lets {@code canUse}/
-     * {@code canContinueToUse} succeed while {@code gate} is true — a single reusable wrapper instead
-     * of a bespoke gated subclass per vanilla goal type (compare Gray Ooze's {@code GrayOozeStrollGoal}/
-     * {@code GrayOozeMeleeAttackGoal}, which solve the exact same "don't act while disguised" problem
-     * with a hand-written subclass per goal type).
-     * <p>
-     * This is a solid extraction candidate for a shared {@code core/entity/ai/goal/} package once a
-     * second real consumer shows up — e.g. retrofitting Gray Ooze's bespoke goals onto this, or a
-     * future "looks like an inert statue until approached" mechanic on {@code Gargoyle}/{@code Margoyle}
-     * (neither currently has any disguise/dormant state — they're always-active fliers today; this
-     * would be new behavior, not a bug fix). Deliberately left here for now, on the "generalize when a
-     * second consumer needs it, not speculatively" convention this codebase already follows elsewhere
-     * (see the {@code corrosion_immune} tag's history) — see the Jul 8, 2026 hand-off doc for the fuller
-     * discussion of this trade-off.
-     */
-    private static class GatedGoal extends Goal {
-        private final Goal delegate;
-        private final BooleanSupplier gate;
-
-        GatedGoal(Goal delegate, BooleanSupplier gate) {
-            this.delegate = delegate;
-            this.gate = gate;
-            this.setFlags(delegate.getFlags());
-        }
-
-        @Override
-        public boolean canUse() {
-            return this.gate.getAsBoolean() && this.delegate.canUse();
-        }
-
-        @Override
-        public boolean canContinueToUse() {
-            return this.gate.getAsBoolean() && this.delegate.canContinueToUse();
-        }
-
-        @Override
-        public boolean isInterruptable() {
-            return this.delegate.isInterruptable();
-        }
-
-        @Override
-        public void start() {
-            this.delegate.start();
-        }
-
-        @Override
-        public void stop() {
-            this.delegate.stop();
-        }
-
-        @Override
-        public void tick() {
-            this.delegate.tick();
-        }
-
-        @Override
-        public boolean requiresUpdateEveryTick() {
-            return this.delegate.requiresUpdateEveryTick();
-        }
-    }
 }

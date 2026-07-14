@@ -3,8 +3,12 @@ package mod.gottsch.forge.gmm.core.entity.monster.zombie;
 import mod.gottsch.forge.gmm.core.config.MobConfigHelper;
 import mod.gottsch.forge.gmm.core.entity.ai.goal.target.SummonedOwnerTargetGoal;
 import mod.gottsch.forge.gmm.core.entity.monster.GMMMonster;
+import mod.gottsch.forge.gmm.core.entity.projectile.BloaterArm;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.network.syncher.EntityDataAccessor;
+import net.minecraft.network.syncher.EntityDataSerializers;
+import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.damagesource.DamageSource;
@@ -20,8 +24,12 @@ import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.npc.Villager;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.AreaEffectCloud;
+import net.minecraft.world.entity.projectile.AbstractArrow;
+import net.minecraft.world.entity.projectile.Arrow;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
+
+import java.util.function.BiFunction;
 
 /**
  * A bloated plague-zombie (D&D ogre zombie / Pathfinder plague zombie). It lumbers slowly and hits
@@ -30,6 +38,11 @@ import net.minecraft.world.level.block.state.BlockState;
  * over a few seconds — so killing it in a doorway or on top of yourself is its own punishment.
  * The cloud damages entities (via Poison) but never terrain. Cloud radius / duration / effect
  * strength and whether it bursts at all are codec-driven ({@code gmm:mob_config}).
+ *
+ * <p>The rupture also tumbles a couple of real zombie-arm-shaped {@link BloaterArm} entities loose
+ * nearby (same gentle flung-limb idiom as Bloody Bones, cosmetic only) — once thrown, the model's
+ * own arms are hidden (see {@link #areArmsDetached()}) so the corpse doesn't still appear to have
+ * arms attached during its death-fall render.
  *
  * <p>Undead, so it is immune to its own poison; melee, sun-burning, swamp/sewer/cave dweller.
  *
@@ -46,10 +59,34 @@ public class Bloater extends GMMMonster {
     // sickly green miasma tint for the cloud particles (readability > realism)
     private static final int CLOUD_COLOR = 0x6C8A2C;
 
+    // a couple of arms tumble loose nearby, Bloody Bones-style.
+    private static final int DEFAULT_ARM_COUNT = 2;
+
+    private static final EntityDataAccessor<Boolean> DATA_ARMS_DETACHED =
+            SynchedEntityData.defineId(Bloater.class, EntityDataSerializers.BOOLEAN);
+
+    /**
+     * Consumer-supplied factory for the launched {@link BloaterArm} shrapnel (gmm registers no
+     * EntityTypes). DD wires this to a DD-registered {@code BloaterArm}; if left null the arms fall
+     * back to a plain arrow.
+     */
+    public static BiFunction<LivingEntity, Level, AbstractArrow> armFactory;
+
     private boolean hasBurst;
 
     public Bloater(EntityType<? extends Monster> entityType, Level level) {
         super(entityType, level);
+    }
+
+    @Override
+    public void defineSynchedData() {
+        super.defineSynchedData();
+        this.entityData.define(DATA_ARMS_DETACHED, false);
+    }
+
+    /** True once the death-rupture has flung its arms loose; hides the model's arm parts. */
+    public boolean areArmsDetached() {
+        return this.entityData.get(DATA_ARMS_DETACHED);
     }
 
     @Override
@@ -104,6 +141,14 @@ public class Bloater extends GMMMonster {
         return MobConfigHelper.get(this).flag("nausea", true);
     }
 
+    private boolean launchesArms() {
+        return MobConfigHelper.get(this).flag("launchArms", true);
+    }
+
+    private int armCount() {
+        return (int) MobConfigHelper.get(this).number("armCount", DEFAULT_ARM_COUNT);
+    }
+
     /** Rupture into a poison-gas cloud when killed (the whole point). Idempotent. */
     @Override
     public void die(DamageSource damageSource) {
@@ -138,6 +183,35 @@ public class Bloater extends GMMMonster {
             cloud.addEffect(new MobEffectInstance(MobEffects.CONFUSION, this.poisonDuration(), 0));
         }
         this.level().addFreshEntity(cloud);
+
+        if (this.launchesArms()) {
+            launchArms();
+            this.entityData.set(DATA_ARMS_DETACHED, true);
+        }
+    }
+
+    /**
+     * A couple of {@link BloaterArm}s tumble loose as it ruptures — the same gentle, harmless
+     * scatter as Bloody Bones' {@code flingLimbs()} (no damage, purely cosmetic; unlike Tainted
+     * Skeleton's shrapnel, this isn't meant to threaten anyone).
+     */
+    private void launchArms() {
+        int count = this.armCount();
+        for (int i = 0; i < count; i++) {
+            // gmm registers no EntityTypes, so a null factory (DD not wired) falls back to a plain
+            // arrow rather than trying to construct an unregistered BloaterArm.
+            AbstractArrow arm = (armFactory != null)
+                    ? armFactory.apply(this, this.level()) : new Arrow(this.level(), this);
+            double dx = this.random.nextGaussian() * 0.5D;
+            double dy = this.random.nextDouble() * 0.4D + 0.2D; // a soft upward pop
+            double dz = this.random.nextGaussian() * 0.5D;
+            arm.setPos(this.getX(), this.getY(0.6D), this.getZ());
+            arm.shoot(dx, dy, dz, 0.28F, 3.0F); // low velocity — they don't travel far
+            arm.setBaseDamage(0.0D);            // purely cosmetic: hurts nothing
+            arm.setCritArrow(false);
+            arm.pickup = AbstractArrow.Pickup.DISALLOWED;
+            this.level().addFreshEntity(arm);
+        }
     }
 
     @Override

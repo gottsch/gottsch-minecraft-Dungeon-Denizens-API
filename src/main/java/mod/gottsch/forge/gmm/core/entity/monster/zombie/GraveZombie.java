@@ -403,6 +403,26 @@ public class GraveZombie extends GMMMonster {
         super.checkDespawn();
     }
 
+    /**
+     * {@code restrictTo}'s radius is only meant to gate {@link #checkDespawn} and pin exactly where a
+     * restricted grave rises (see {@code tickBurrowed}'s own {@code hasRestriction()} check) — it was
+     * never meant to leash the zombie back to its grave mid-fight. {@code WaterAvoidingRandomStrollGoal}
+     * (registered unconditionally, since AI is fully suppressed via {@code setNoAi} while dormant
+     * anyway) picks candidate positions through this exact method, so a restricted grave chasing a
+     * target away from its plot would otherwise keep trying to wander back once it lost the chase —
+     * same bug {@code AnimatedArmor} had with its own gated stroll goal. {@link #hasRestriction()}/
+     * {@link #getRestrictCenter()}/{@link #getRestrictRadius()} themselves are untouched, so
+     * {@link #checkDespawn} and the burrowed-phase rise-in-place check keep working off the original
+     * grave position regardless.
+     */
+    @Override
+    public boolean isWithinRestriction(BlockPos pos) {
+        if (getPhase() == PHASE_ACTIVE) {
+            return true;
+        }
+        return super.isWithinRestriction(pos);
+    }
+
     // --- persistence ----------------------------------------------------------------------------
 
     @Override

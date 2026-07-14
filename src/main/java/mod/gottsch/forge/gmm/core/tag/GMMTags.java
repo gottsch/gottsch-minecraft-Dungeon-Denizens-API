@@ -56,6 +56,16 @@ public class GMMTags {
         public static final TagKey<Item> SHADOW_BANE = mod(GMM.MOD_ID, "shadow/bane");
         public static final TagKey<Item> SHADOW_MINOR_BANE = mod(GMM.MOD_ID, "shadow/minor_bane");
 
+        // Animated Armor equipment pools (consumer-populated, one per slot) -- a full suit rolls all
+        // four independently, see AnimatedArmor#populateDefaultEquipmentSlots.
+        public static final TagKey<Item> ANIMATED_ARMOR_HELMETS = mod(GMM.MOD_ID, "animated_armor/helmets");
+        public static final TagKey<Item> ANIMATED_ARMOR_CHESTPLATES = mod(GMM.MOD_ID, "animated_armor/chestplates");
+        public static final TagKey<Item> ANIMATED_ARMOR_LEGGINGS = mod(GMM.MOD_ID, "animated_armor/leggings");
+        public static final TagKey<Item> ANIMATED_ARMOR_BOOTS = mod(GMM.MOD_ID, "animated_armor/boots");
+
+        // Animated Weapon mainhand pool (consumer-populated) -- rolled once on spawn and always dropped.
+        public static final TagKey<Item> ANIMATED_WEAPON_WEAPONS = mod(GMM.MOD_ID, "animated_weapon/weapons");
+
         public static TagKey<Item> mod(String domain, String path) {
             return ItemTags.create(new ResourceLocation(domain, path));
         }
