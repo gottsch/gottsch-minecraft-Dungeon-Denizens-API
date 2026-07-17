@@ -17,6 +17,63 @@ build on top of.
 
 ### Added
 
+- **Shield Blocking** — new shared `RaiseShieldGoal` (`core/entity/ai/goal/`) lets any `Mob` raise a
+  shield already equipped in its offhand whenever a live, visible target closes to melee range, then
+  lower it again once the target backs off or a max-duration cap is hit. Claims no `Goal.Flag`s, so it
+  runs concurrently with melee/ranged goals rather than replacing them — a mob can block and swing at
+  the same time, same as a player. The actual damage reduction is real, not decorative: vanilla's
+  `LivingEntity#isBlocking()`/`isDamageSourceBlocked()` were never player-locked, so simply calling
+  `startUsingItem(OFF_HAND)` is enough. Wired to three mobs, each with its own `gmm:<mob>/shields` item
+  tag (vanilla shield shipped as the default for all three): **Skeleton Warrior** and **Wight** roll a
+  shield at a configurable chance (`shieldProbability`, default 0.35 — a Wight only rolls one if it
+  didn't also roll a bow) on top of their existing weapon; **Skeleton Champion** always carries one, no
+  roll. All cadence/range/duration knobs (`shieldBlocking`/`shieldBlockRange`/`shieldBlockCooldown`/
+  `shieldMaxBlockTicks`) are shared `gmm:mob_config` keys, documented once under "Shield Blocking —
+  shared" rather than duplicated per mob. **First in-game screenshot found the shield rendering at the
+  wrong angle** — root cause: vanilla's arm-bending "blocking" pose (`HumanoidModel.ArmPose.BLOCK`) is
+  only ever assigned by `PlayerRenderer`, never for a generic `Mob`, and none of the three mobs' custom
+  model classes route through vanilla's private pose dispatch anyway (some fully override `setupAnim`
+  without calling `super`). Fixed with a new `GMMAnimationUtils#poseBlockingArm` (replicates vanilla's
+  own formula) called directly from each of `SkeletonWarriorModel`/`SkeletonChampionModel`/`WightModel`
+  whenever `entity.isUsingItem() && getUsedItemHand() == OFF_HAND`.
+- **Wood Golem** — new Family: Constructs mob, ported from Treasure2's "Witherwood Golem": a bark/root
+  construct that guards a fixed post rather than roaming, anchored via vanilla's own `Mob#restrictTo`
+  (never despawns while restricted, never leashed back mid-fight, matching the `GraveZombie`/
+  `AnimatedArmor` idiom rather than reinventing a synced home-position field). Own dedicated
+  `WoodGolemModel` rig, `WoodGolemRenderer`, and ported textures (recolored from Treasure2's dark
+  "witherwood" palette to real oak wood colors). An iron-golem-style slam attack (wide random damage
+  roll + knockback) with iron golem sounds as a stand-in until a dedicated "wood creak" sound is added.
+  Stats (`MAX_HEALTH 50.0`/`ATTACK_DAMAGE 10.0`) are D&D-mapped against a new golem-family baseline
+  (anchored to Iron Golem, since the project's usual zombie-based health ratio badly undershoots for
+  golems) — deliberately ranked tougher than Flesh Golem but weaker than Clay Golem per MC's own
+  material-accessibility logic rather than literal D&D CR order. Wired end-to-end into Dungeon
+  Denizens (egg/`/summon` spawnable, never a biome natural spawn).
+  **Neutral by default, not hardcoded-hostile** — after the first in-game test showed it attacking the
+  player unprompted, targeting was reworked: `attacksMonsters` (flag, default `true`) targets whatever
+  matches the new cross-cutting `gmm:category/hostile_monsters` tag (a "protector" mob shouldn't force a
+  consumer to enumerate a monster roster), `attacksPlayers` (flag, default `false`) is a separate policy
+  toggle. This also fully subsumes the earlier Iron Golem hostility removal — iron golems aren't in the
+  default hostile-monsters tag, so golems never fight each other regardless of config. Not yet in-game
+  visually re-verified.
+- **Bloater** — dedicated Blockbench rig (`BloaterZombieModel`) replacing the earlier shared
+  `GMMZombieModel`/`ModelLayers.ZOMBIE` reuse: a genuinely swollen torso via two asymmetric,
+  angled `frontBloat`/`backBloat` child cubes (offset + ~12.5° tilt) rather than a parallel inflate
+  layer, plus swollen legs. Arms no longer raise into the zombie shamble — the normal humanoid
+  walk/attack swing is left in place but dampened for idle sway only (a real attack swing is
+  untouched) — and the whole torso now waddles (rolls side-to-side once per step with a downward
+  bob at each weight-shift peak). Death rupture flings a couple of new `BloaterArm` shrapnel
+  entities loose (a real zombie-arm-shaped, Bloater-textured projectile, not a reused bone shard),
+  and the model's own arm parts hide once thrown. Texture is now a flesh-masked recolor (only
+  exposed skin takes the sickly-green ramp) with a new swampy-decay shirt/pants recolor
+  (previously vanilla teal/violet) — the recolor script's base switched from Husk to vanilla Zombie
+  since Husk has no distinctly-hued clothing to mask against.
+- **Companion Spawning** — new opt-in hook (`GMMMonster`/`GMMFlyingMonster#getCompanionPool()`) that
+  spawns a tag-driven escort alongside a mob's own natural/egg/summon spawn, backed by a new public
+  `core/util/CompanionSpawner` utility (also directly callable by a consumer for one-off, hand-picked
+  encounters, e.g. a custom structure spawner). Recursion/runaway-safe by construction: every
+  companion is finalized as `MobSpawnType.MOB_SUMMONED`, a type the trigger check never re-enters, so
+  it's capped at exactly one level deep regardless of tag contents. Wired to Beholder
+  (`gmm:beholder/companions`) and Wight (`gmm:wight/companions`).
 - **Skeleton Champion** — dedicated Blockbench rig (`SkeletonChampionModel`/`SkeletonChampionRenderer`,
   black-steel plated armor with brass/gold belt-buckle trim) replacing the earlier code-only
   entity/AI, plus `ItemInHandLayer` so its tag-rolled weapon (`gmm:skeleton_champion/weapons`,
@@ -51,6 +108,21 @@ build on top of.
   windup telegraph (`isWindingUp()`, 15 ticks, `ParticleTypes.CRIT` sparks, smoothly blended via a
   partial-tick-interpolated `getWindupProgress`) rather than vanilla's own too-short/non-lengthenable
   swing animation. Unlike Animated Armor this natural-spawns (dark/dungeon biomes).
+- **Orc Shaman** — a caster variant of `Orc` (`core/entity/monster/OrcShaman`): stands off at range
+  and retreats when crowded rather than closing to melee, via a `getCombatGoalOverride()` hook added to
+  `Orc` itself (the same `ThrowProjectileGoal` its rock-throwing sibling uses for positioning, built
+  with a `null` launcher so it never actually throws — taught `ThrowProjectileGoal` a `null` launcher
+  means "position only," a fully backward-compatible change). Casts **Spike Growth** via `CastSpellGoal`
+  (`spellChargeTime`/`spellMinRange` tunable in `gmm:mob_config`, default 120 ticks / 4 blocks — Spike
+  Growth is its only attack, so the cast interval is kept short) with no weapon ever equipped
+  (`populateDefaultEquipmentSlots` always empties the main hand) — melee fallback is bare fists at a
+  deliberately weaker `ATTACK_DAMAGE`/`MAX_HEALTH` than a plain `Orc` (D&D 5e's own two Orc stat blocks
+  give a ~0.44x ratio, applied to both stats). Own dedicated rig (`OrcShamanModel`/`OrcShamanRenderer`):
+  a cowl merged into the head as an inflated outer shell with a genuine alpha cutout for the face, a
+  full robe (shoulders + torso + independently-posed front/back flaps, no shoulder pads — a robed
+  caster doesn't wear an orc's spiked pauldrons), and a staff baked directly into the geometry rather
+  than an equippable item. Texture recolored from a flat placeholder to a woven-cloth grain/fold-shadow
+  treatment matching the pants' wood tones, with the staff painted plain wood.
 
 ### Fixed
 

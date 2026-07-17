@@ -3,10 +3,7 @@ package mod.gottsch.forge.gmm.core.client.renderer.entity;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import mod.gottsch.forge.gmm.core.GMM;
-import mod.gottsch.forge.gmm.core.client.model.AlligatorGarModel;
 import mod.gottsch.forge.gmm.core.client.model.SewerGhoulModel;
-import mod.gottsch.forge.gmm.core.entity.monster.AlligatorGar;
-import mod.gottsch.forge.gmm.core.entity.monster.Rat;
 import mod.gottsch.forge.gmm.core.entity.monster.ghoul.SewerGhoul;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.MobRenderer;

@@ -1,5 +1,8 @@
 package mod.gottsch.forge.gmm.core.entity.monster.skeleton;
 
+import mod.gottsch.forge.gmm.core.config.MobConfig;
+import mod.gottsch.forge.gmm.core.config.MobConfigHelper;
+import mod.gottsch.forge.gmm.core.entity.ai.goal.RaiseShieldGoal;
 import mod.gottsch.forge.gmm.core.entity.ai.goal.target.SummonedOwnerTargetGoal;
 import mod.gottsch.forge.gmm.core.entity.monster.GMMMonster;
 import mod.gottsch.forge.gmm.core.tag.GMMTags;
@@ -38,11 +41,23 @@ import java.util.Optional;
 /**
  * Is not extended from Skeleton/AbstractSkeleton but most of the functionality is the same.
  * Equipment is data-driven: each slot is filled from a consumer-populated item tag
- * (SKELETON_WARRIOR_WEAPONS / _HELMETS / _CHESTPLATES / _LEGGINGS / _BOOTS).
+ * (SKELETON_WARRIOR_WEAPONS / _HELMETS / _CHESTPLATES / _LEGGINGS / _BOOTS / _SHIELDS).
+ * <p>
+ * Unlike the always-armed weapon/armor rolls, a shield (from {@code SKELETON_WARRIOR_SHIELDS}) is a
+ * configurable-chance roll ({@code shieldProbability}) — not every warrior carries one. When equipped,
+ * {@link RaiseShieldGoal} raises it whenever a target closes to melee range, giving real vanilla
+ * shield-block damage reduction (see that goal's own doc for why this works on a {@code Mob} at all).
  *
  * @author Mark Gottschling on Jan 19, 2024
  */
 public class SkeletonWarrior extends GMMMonster {
+
+    // Shield (see RaiseShieldGoal): a configurable-chance roll, unlike the always-armed weapon --
+    // a rank-and-file warrior isn't guaranteed to be carrying one.
+    private static final double DEFAULT_SHIELD_PROBABILITY = 0.35D;
+    private static final double DEFAULT_SHIELD_BLOCK_RANGE = 4.0D;
+    private static final int DEFAULT_SHIELD_BLOCK_COOLDOWN = 40;
+    private static final int DEFAULT_SHIELD_MAX_BLOCK_TICKS = 100;
 
     public SkeletonWarrior(EntityType<? extends Monster> entityType, Level level) {
         super(entityType, level);
@@ -50,9 +65,16 @@ public class SkeletonWarrior extends GMMMonster {
 
     @Override
     protected void registerGoals() {
+        MobConfig config = MobConfigHelper.get(this);
         this.goalSelector.addGoal(2, new RestrictSunGoal(this));
         this.goalSelector.addGoal(3, new FleeSunGoal(this, 1.0D));
         this.goalSelector.addGoal(4, new MeleeAttackGoal(this, 1.0D, false));
+        if (config.flag("shieldBlocking", true)) {
+            this.goalSelector.addGoal(4, new RaiseShieldGoal(this,
+                    config.number("shieldBlockRange", DEFAULT_SHIELD_BLOCK_RANGE),
+                    (int) config.number("shieldBlockCooldown", DEFAULT_SHIELD_BLOCK_COOLDOWN),
+                    (int) config.number("shieldMaxBlockTicks", DEFAULT_SHIELD_MAX_BLOCK_TICKS)));
+        }
         this.goalSelector.addGoal(5, new MoveThroughVillageGoal(this, 1.0D, true, 4, () -> true));
         this.goalSelector.addGoal(6, new WaterAvoidingRandomStrollGoal(this, 1.0D));
         this.goalSelector.addGoal(7, new LookAtPlayerGoal(this, Player.class, 8.0F));
@@ -64,6 +86,10 @@ public class SkeletonWarrior extends GMMMonster {
 
     public static AttributeSupplier.Builder createAttributes() {
         return Monster.createMonsterAttributes().add(Attributes.MOVEMENT_SPEED, 0.25D);
+    }
+
+    private double shieldProbability() {
+        return MobConfigHelper.get(this).number("shieldProbability", DEFAULT_SHIELD_PROBABILITY);
     }
 
     @Override
@@ -80,6 +106,12 @@ public class SkeletonWarrior extends GMMMonster {
 
         // always randomize the weapon
         setRandomEquipment(EquipmentSlot.MAINHAND);
+
+        // shield: a configurable-chance roll (see RaiseShieldGoal), separate from the always-armed
+        // weapon above -- not every rank-and-file warrior carries one.
+        if (this.random.nextDouble() < shieldProbability()) {
+            setRandomEquipment(EquipmentSlot.OFFHAND);
+        }
     }
 
     protected void setRandomEquipment(EquipmentSlot slot) {
@@ -112,7 +144,8 @@ public class SkeletonWarrior extends GMMMonster {
             case CHEST -> GMMTags.Items.SKELETON_WARRIOR_CHESTPLATES;
             case LEGS -> GMMTags.Items.SKELETON_WARRIOR_LEGGINGS;
             case FEET -> GMMTags.Items.SKELETON_WARRIOR_BOOTS;
-            default -> GMMTags.Items.SKELETON_WARRIOR_WEAPONS; // MAINHAND / OFFHAND
+            case OFFHAND -> GMMTags.Items.SKELETON_WARRIOR_SHIELDS;
+            default -> GMMTags.Items.SKELETON_WARRIOR_WEAPONS; // MAINHAND
         };
     }
 

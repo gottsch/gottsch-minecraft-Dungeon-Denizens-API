@@ -93,7 +93,6 @@ public class WeightedChanceSummonGoal extends ChanceSummonGoal {
 
                             boolean spawnSuccess = super.spawn((ServerLevel) level, level.random, this.mob, mob, Coords.of(this.mob.blockPosition().getX(), y + 1, this.mob.blockPosition().getZ()), target);
                             if (!level.isClientSide() && spawnSuccess) {
-//                                GMM.LOGGER.debug("debug! -> {}", this.mob.blockPosition());
                                 for (int p = 0; p < 20; p++) {
                                     double xSpeed = this.mob.getRandom().nextGaussian() * 0.02D;
                                     double ySpeed = this.mob.getRandom().nextGaussian() * 0.02D;

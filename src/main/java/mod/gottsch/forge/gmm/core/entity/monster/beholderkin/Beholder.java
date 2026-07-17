@@ -10,6 +10,7 @@ import mod.gottsch.forge.gmm.core.particle.GMMParticles;
 import mod.gottsch.forge.gmm.core.tag.GMMTags;
 import mod.gottsch.forge.gottschcore.random.WeightedCollection;
 import net.minecraft.sounds.SoundEvent;
+import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.FlyingMob;
 import net.minecraft.world.entity.Mob;
@@ -44,6 +45,12 @@ public class Beholder extends Beholderkin {
 	public static EntityType<? extends Mob> summonDaemon;
 
 	public static Supplier<SoundEvent> ambientSound = () -> GMMSounds.BEHOLDER_AMBIENT.get();
+
+	/** Spawns escort minions alongside a natural spawn (see {@code GMMFlyingMonster#getCompanionPool}). */
+	@Override
+	protected TagKey<EntityType<?>> getCompanionPool() {
+		return GMMTags.EntityTypes.BEHOLDER_COMPANIONS;
+	}
 
 	public Beholder(EntityType<? extends FlyingMob> entityType, Level level) {
 		super(entityType, level);

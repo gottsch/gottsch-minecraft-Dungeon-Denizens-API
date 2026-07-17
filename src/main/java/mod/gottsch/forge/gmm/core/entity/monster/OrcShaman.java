@@ -50,7 +50,7 @@ public class OrcShaman extends Orc {
     protected void registerGoals() {
         super.registerGoals();
         if (spellCaster != null) {
-            int chargeTime = (int) MobConfigHelper.get(this).number("spellChargeTime", 160);
+            int chargeTime = (int) MobConfigHelper.get(this).number("spellChargeTime", 120);
             // don't cast Spike Growth if the target is already this close -- the standoff goal's own
             // melee fallback (getCombatGoalOverride()) handles point-blank instead.
             double minRange = MobConfigHelper.get(this).number("spellMinRange", 4.0);

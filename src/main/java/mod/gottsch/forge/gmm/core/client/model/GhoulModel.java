@@ -33,7 +33,6 @@ public class GhoulModel<T extends Entity> extends HumanlikeModel<T> {
 	private final ModelPart leftLeg;
 	private final ModelPart rightLeg;
 
-	private Position chestPos;
 	private Position rightArmPos;
 	private Position leftArmPos;
 	private Rotation rightArmRot;
@@ -47,14 +46,12 @@ public class GhoulModel<T extends Entity> extends HumanlikeModel<T> {
 		this.head = root.getChild("head");
 		this.torso = root.getChild("torso");		
 		this.body = torso.getChild("body");
-//		this.lower_body = torso.getChild("lower_body");
 		this.leftArm = root.getChild("left_arm");
 		this.rightArm = root.getChild("right_arm");
 		this.leftLeg = root.getChild("left_leg");
 		this.rightLeg = root.getChild("right_leg");
 
 		// part states
-		chestPos = new Position(torso);
 		rightArmPos = new Position(rightArm);
 		leftArmPos = new Position(leftArm);
 
@@ -124,11 +121,7 @@ public class GhoulModel<T extends Entity> extends HumanlikeModel<T> {
 		swingArms(limbSwing, limbSwingAmount, ageInTicks, 0.25F, 0.5235988F);
 
 		setupAttackAnimation(entity, ageInTicks);
-		
-		// reset arm rotations before bobbing, because bobbing is an addition to current rotation
-//		this.leftArm.zRot = -0.3926991F;
-//		this.rightArm.zRot = 0.3926991F;
-		
+
 		// bob the arms
 		bobArm(this.rightArm, ageInTicks, 1.0F);
 		bobArm(this.leftArm, ageInTicks, -1.0F);

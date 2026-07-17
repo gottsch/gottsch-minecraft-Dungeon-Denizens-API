@@ -4,7 +4,6 @@ import mod.gottsch.forge.gmm.core.client.model.attribute.Position;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.util.Mth;
 
-import javax.swing.text.html.Option;
 import java.util.Optional;
 
 /**

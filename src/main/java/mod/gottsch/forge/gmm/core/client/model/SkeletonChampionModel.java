@@ -11,6 +11,7 @@ import net.minecraft.client.model.geom.PartPose;
 import net.minecraft.client.model.geom.builders.*;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.entity.Mob;
 
@@ -112,6 +113,12 @@ public class SkeletonChampionModel<T extends Mob> extends EntityModel<T> impleme
         this.left_leg.xRot = Mth.cos(limbSwing * 0.6662F + (float) Math.PI) * 1.4F * limbSwingAmount;
 
         setupAttackAnimation();
+
+        // a raised shield (see RaiseShieldGoal) bends the offhand (left) arm up -- nothing in vanilla
+        // does this for a Mob automatically, see GMMAnimationUtils#poseBlockingArm.
+        if (entity.isUsingItem() && entity.getUsedItemHand() == InteractionHand.OFF_HAND) {
+            GMMAnimationUtils.poseBlockingArm(this.left_arm, this.head, false);
+        }
     }
 
     /** Rotation-only sword swing, right arm only (mainhand — the champion's blade). */

@@ -1,17 +1,17 @@
 /*
- * This file is part of Treasure2.
+ * This file is part of gottsch's Monster Manual.
  * Copyright (c) 2025 Mark Gottschling (gottsch)
  *
- * Treasure2 is free software: you can redistribute it and/or modify
+ * gottsch's Monster Manual is free software: you can redistribute it and/or modify
  * it under the terms of the Open Software Licence 3.0.
  *
- * Treasure2 is distributed in the hope that it will be useful,
+ * gottsch's Monster Manual is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * Open Software Licence 3.0 for more details.
  *
  * You should have received a copy of the Open Software Licence
- * along with Treasure2. If not, see <https://www.tldrlegal.com/license/open-software-licence-3-0>.
+ * along with gottsch's Monster Manual. If not, see <https://www.tldrlegal.com/license/open-software-licence-3-0>.
  */
 package mod.gottsch.forge.gmm.datagen;
 
@@ -71,6 +71,8 @@ public class GMMItemTagsProvider extends ItemTagsProvider {
 				Items.LEATHER_LEGGINGS, Items.GOLDEN_LEGGINGS, Items.CHAINMAIL_LEGGINGS);
 		tag(GMMTags.Items.SKELETON_WARRIOR_BOOTS).add(
 				Items.LEATHER_BOOTS, Items.GOLDEN_BOOTS, Items.CHAINMAIL_BOOTS);
+		// Shield pool: gmm owns no shield items of its own, so vanilla's own shield is the only default.
+		tag(GMMTags.Items.SKELETON_WARRIOR_SHIELDS).add(Items.SHIELD);
 
 		// Orc weapon pool: ship weak-vanilla defaults so Orcs are armed standalone; consumers add more.
 		tag(GMMTags.Items.ORC_WEAPONS).add(Items.STONE_SWORD, Items.STONE_AXE);
@@ -78,6 +80,7 @@ public class GMMItemTagsProvider extends ItemTagsProvider {
 		// Wight weapon pool: a modest sword + bow default (either melee or ranged, see
 		// Wight#reassessWeaponGoal) so it's armed standalone; consumers add their own additively.
 		tag(GMMTags.Items.WIGHT_WEAPONS).add(Items.IRON_SWORD, Items.STONE_SWORD, Items.BOW);
+		tag(GMMTags.Items.WIGHT_SHIELDS).add(Items.SHIELD);
 
 		// Bodak gaze ward: carved pumpkin blocks Death Gaze, the same item vanilla Enderman already
 		// uses to ward off its own gaze-based aggro. Consumers add their own ward items additively.
@@ -86,6 +89,7 @@ public class GMMItemTagsProvider extends ItemTagsProvider {
 		// Skeleton Champion weapon pool: an elite leader carries elite steel — diamond + netherite
 		// swords by default. Consumers add their own (fancier) weapons additively.
 		tag(GMMTags.Items.SKELETON_CHAMPION_WEAPONS).add(Items.DIAMOND_SWORD, Items.NETHERITE_SWORD);
+		tag(GMMTags.Items.SKELETON_CHAMPION_SHIELDS).add(Items.SHIELD);
 
 		// Corrosion immunity (Acid Skeleton, Gelatinous Cube, ...): diamond gear resists it (netherite
 		// added too, since it's the higher tier — drop it if only diamond should be immune). Consumers

@@ -40,9 +40,6 @@ public class Gargoyle extends WingedHumanoid {
     /** Consumer-supplied ambient sound (GMM ships no sound events). Left null = silent. */
     public static Supplier<SoundEvent> ambientSound = () -> GMMSounds.WING_FLAP.get();
 
-    // abstract out to WingedHumanoid ?? will all winged humanoids flee on hit?
-    public boolean shouldFlee = false;
-
     public Gargoyle(EntityType<? extends Monster> entityType, Level level) {
         super(entityType, level);
     }

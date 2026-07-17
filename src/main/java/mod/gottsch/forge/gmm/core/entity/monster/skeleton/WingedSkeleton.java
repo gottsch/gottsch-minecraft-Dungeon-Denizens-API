@@ -390,7 +390,6 @@ public class WingedSkeleton extends GMMFlyingMonster implements RangedAttackMob 
         private static final int DEFAULT_COOLDOWN_TIME = 20;
         private GMMFlyingMonster mob;
         private int cooldownCount;
-        @Deprecated
         private final int cooldownTime;
         private int attackIntervalMin;
         private final float attackRadiusSqr;

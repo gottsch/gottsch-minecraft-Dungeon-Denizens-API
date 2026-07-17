@@ -43,7 +43,9 @@ public class GMMCapabilities {
         // GMM mobs implement IOwnable directly (own fields/synced data); only other living entities
         // need the capability-backed ownership.
         if (entity instanceof LivingEntity && !(entity instanceof IOwnable)) {
-            event.addCapability(OWNERSHIP_ID, new OwnershipProvider());
+            OwnershipProvider provider = new OwnershipProvider();
+            event.addCapability(OWNERSHIP_ID, provider);
+            event.addListener(provider::invalidate);
         }
     }
 }

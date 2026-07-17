@@ -11,8 +11,8 @@ package mod.gottsch.forge.gmm.core.entity.ownership;
  *       normal, permanent spawn that targets whoever it likes (vanilla zombie-reinforcement style).</li>
  *   <li>{@link #SUMMONED} -- a temporary conjuration: it may assist its owner and it has a lifespan,
  *       after which it is "unsummoned" (vanishes). E.g. a wizard summoning a demon for a set time.</li>
- *   <li>{@link #THRALL} -- reserved: a mob under the owner's command that obeys issued orders. Not yet
- *       implemented (Phase 2).</li>
+ *   <li>{@link #THRALL} -- a mob under the owner's command that obeys issued orders (guard, follow,
+ *       attack, stay).</li>
  * </ul>
  *
  * @author Mark Gottschling

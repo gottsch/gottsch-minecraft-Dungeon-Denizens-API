@@ -55,29 +55,4 @@ public class SewerGhoul extends AbstractGhoul {
 	protected SoundEvent getStepSound() {
 		return SoundEvents.HUSK_STEP;
 	}
-	// TODO this is probably trash
-	/**
-	 * Checks if the inventory can accept at least one of the given ItemStack.
-	 * @param inventoryHandler The mob's ItemStackHandler.
-	 * @param stackToCheck The item stack you want to check for insertion space.
-	 * @return true if the inventory is full (cannot accept even 1 of the item), false otherwise.
-	 */
-//	public static boolean isInventoryFull(IItemHandler inventoryHandler, ItemStack stackToCheck) {
-//		if (stackToCheck.isEmpty()) {
-//			return true; // Consider it full if you're trying to insert nothing
-//		}
-//
-//		// 1. Create a temporary stack of size 1 for the check.
-//		ItemStack singleItem = stackToCheck.copyWithCount(1);
-//
-//		// 2. Simulate the insertion. The inventory remains unchanged.
-//		ItemStack remainder = inventoryHandler.insertItem(
-//				0, // Start checking from slot 0
-//				singleItem,
-//				true // SIMULATE = true
-//		);
-//
-//		// 3. If the remainder is not empty, it means the inventory couldn't accept even one item.
-//		return !remainder.isEmpty();
-//	}
 }

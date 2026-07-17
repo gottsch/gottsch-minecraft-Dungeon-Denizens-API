@@ -24,6 +24,9 @@ public class GMMTags {
         public static final TagKey<Item> SKELETON_WARRIOR_CHESTPLATES = mod(GMM.MOD_ID, "skeleton_warrior/chestplates");
         public static final TagKey<Item> SKELETON_WARRIOR_LEGGINGS = mod(GMM.MOD_ID, "skeleton_warrior/leggings");
         public static final TagKey<Item> SKELETON_WARRIOR_BOOTS = mod(GMM.MOD_ID, "skeleton_warrior/boots");
+        // Shield pool (see RaiseShieldGoal) -- SkeletonWarrior rolls into this at a configurable chance
+        // (shieldProbability), unlike weapons/armor above which are always rolled.
+        public static final TagKey<Item> SKELETON_WARRIOR_SHIELDS = mod(GMM.MOD_ID, "skeleton_warrior/shields");
 
         // Orc weapon pool (consumer-populated)
         public static final TagKey<Item> ORC_WEAPONS = mod(GMM.MOD_ID, "orc/weapons");
@@ -32,6 +35,9 @@ public class GMMTags {
         // gmm ships diamond + netherite swords as the default (an elite carries elite steel); consumers
         // add their own weapons additively.
         public static final TagKey<Item> SKELETON_CHAMPION_WEAPONS = mod(GMM.MOD_ID, "skeleton_champion/weapons");
+        // Shield pool (see RaiseShieldGoal) -- unlike SkeletonWarrior/Wight, a Champion always rolls
+        // one (no probability gate); it's the pack leader, not a rank-and-file grunt.
+        public static final TagKey<Item> SKELETON_CHAMPION_SHIELDS = mod(GMM.MOD_ID, "skeleton_champion/shields");
 
         // Equipment immune to acid/corrosion damage (Acid Skeleton, Gelatinous Cube, ...). gmm ships
         // diamond/netherite gear as the default; consumers can add their own corrosion-proof items
@@ -42,6 +48,9 @@ public class GMMTags {
         // Wight weapon pool: melee (sword) or ranged (bow) -- see Wight#reassessWeaponGoal. gmm ships
         // a modest vanilla default of each so a Wight is armed standalone; consumers add more.
         public static final TagKey<Item> WIGHT_WEAPONS = mod(GMM.MOD_ID, "wight/weapons");
+        // Shield pool (see RaiseShieldGoal) -- a melee-rolled Wight only, at a configurable chance
+        // (shieldProbability); a bow-rolled Wight never gets one (see Wight#populateDefaultEquipmentSlots).
+        public static final TagKey<Item> WIGHT_SHIELDS = mod(GMM.MOD_ID, "wight/shields");
 
         // Bodak gaze ward: a helmet-slot item that blocks Death Gaze entirely (see
         // Bodak#isLookingAtMe), mirroring vanilla Enderman's own carved-pumpkin ward. gmm ships carved
@@ -103,6 +112,12 @@ public class GMMTags {
         public static final TagKey<EntityType<?>> WIGHT_SUMMON_ALLIES = mod(GMM.MOD_ID, "wight/summon_allies");
         public static final TagKey<EntityType<?>> WIGHT_ENTHRALL_CANDIDATES = mod(GMM.MOD_ID, "wight/enthrall_candidates");
 
+        // mobs that may spawn as a Wight's escort (see GMMMonster#getCompanionPool). Distinct from
+        // the two tags above (which are combat-time thrall-raising pools, not spawn-time escorts) --
+        // a lone Wight is an easy-to-kite caster, so a small guard at spawn makes the encounter read
+        // like an actual undead leader rather than a solitary target.
+        public static final TagKey<EntityType<?>> WIGHT_COMPANIONS = mod(GMM.MOD_ID, "wight/companions");
+
         // mobs a Shrieker alerts (via AllyAlertUtil) when it pulses on a nearby player -- Shrieker never
         // fights, so this is a proximity broadcast, not a combat-acquired-target one.
         public static final TagKey<EntityType<?>> SHRIEKER_ALLIES = mod(GMM.MOD_ID, "shrieker/allies");
@@ -113,6 +128,24 @@ public class GMMTags {
         // instead of a getMobType() comparison so consumers control exactly who's ignite-immune rather
         // than gmm silently exempting every MobType.UNDEAD mob in existence.
         public static final TagKey<EntityType<?>> BURNING_SKELETON_IGNITE_IMMUNE = mod(GMM.MOD_ID, "burning_skeleton/ignite_immune");
+
+        // Mobs that may spawn as a Beholder's escort (see GMMMonster#getCompanionPool /
+        // GMMMonster#finalizeSpawn). Scoped per-mob rather than shared, same reasoning as every other
+        // tag in this class: a future companion-spawner with a different theme gets its own
+        // gmm:<mob>/companions tag rather than sharing one pool. gmm ships no default (there's no
+        // sensible vanilla stand-in for a Beholder-kin minion); consumers populate it entirely.
+        public static final TagKey<EntityType<?>> BEHOLDER_COMPANIONS = mod(GMM.MOD_ID, "beholder/companions");
+
+        // --- category tags -----------------------------------------------------------------------
+        // Cross-cutting, not scoped to one mob -- a `gmm:category/*` tag every consumer of "who counts
+        // as X" logic can share, instead of every mob re-enumerating its own roster (the every-tag-is-
+        // per-mob pattern above works well for a bespoke pool like "who a Beholder enthralls," but
+        // breaks down for something as broad as "every hostile monster," which nobody wants to list out
+        // per mob). First consumer: Wood Golem's "protector" targeting (see WoodGolem#registerGoals) --
+        // a golem defends its post against whatever's in this tag without the mapmaker/consumer having
+        // to enumerate a monster roster themselves. gmm ships the same "common overworld/dungeon
+        // hostiles" default as BEHOLDER_ENTHRALL_CANDIDATES; consumers add their own additively.
+        public static final TagKey<EntityType<?>> CATEGORY_HOSTILE_MONSTERS = mod(GMM.MOD_ID, "category/hostile_monsters");
 
         public static TagKey<EntityType<?>> mod(String domain, String path) {
             return TagKey.create(Registries.ENTITY_TYPE, new ResourceLocation(domain, path));

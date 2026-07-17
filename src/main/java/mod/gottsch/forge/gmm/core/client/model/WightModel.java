@@ -3,6 +3,7 @@ package mod.gottsch.forge.gmm.core.client.model;
 import mod.gottsch.forge.gmm.core.entity.monster.zombie.Wight;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.util.Mth;
+import net.minecraft.world.InteractionHand;
 
 /**
  * The Wight rig: the shared {@link GMMZombieModel} zombie rig, but without the shambling-zombie arm
@@ -37,6 +38,14 @@ public class WightModel<T extends Wight> extends GMMZombieModel<T> {
             this.leftArm.xRot = CAST_XROT - wave;
             this.rightArm.zRot = -CAST_ZROT;
             this.leftArm.zRot = CAST_ZROT;
+            return;
+        }
+        // a raised shield (see RaiseShieldGoal) bends the offhand (left) arm up -- nothing in vanilla
+        // does this for a Mob automatically, see GMMAnimationUtils#poseBlockingArm. Runs here (not a
+        // setupAnim override) since this method already fires after GMMZombieModel's super.setupAnim
+        // call, guaranteeing it wins over whatever the normal walk/attack swing left the arm at.
+        if (entity.isUsingItem() && entity.getUsedItemHand() == InteractionHand.OFF_HAND) {
+            GMMAnimationUtils.poseBlockingArm(this.leftArm, this.head, false);
             return;
         }
         // no-op otherwise: skip the zombie arms-out lurch and keep HumanoidModel's own arm swing/attack pose.

@@ -119,7 +119,6 @@ public abstract class AbstractGhoul extends GMMMonster implements IGhoul {
 
         this.goalSelector.addGoal(3, new GhoulHealGoal(this));
         this.goalSelector.addGoal(4, new MeleeAttackGoal(this, 1.0D, false));
-//        this.goalSelector.addGoal(5, new MoveThroughVillageGoal(this, 1.0D, true, 4, () -> true));
         this.goalSelector.addGoal(6, new WaterAvoidingRandomStrollGoal(this, 1.0D));
         this.goalSelector.addGoal(7, new LookAtPlayerGoal(this, Player.class, 8.0F));
         this.goalSelector.addGoal(7, new RandomLookAroundGoal(this));

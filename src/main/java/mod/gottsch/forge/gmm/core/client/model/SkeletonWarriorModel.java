@@ -11,6 +11,7 @@ import net.minecraft.client.model.geom.PartPose;
 import net.minecraft.client.model.geom.builders.*;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.entity.Mob;
 
@@ -68,6 +69,14 @@ public class SkeletonWarriorModel<T extends Mob> extends HumanoidModel<T> {
         AnimationUtils.bobArms(this.rightArm, this.leftArm, ageInTicks);
 
         setupAttackAnimation(entity, ageInTicks);
+
+        // a raised shield (see RaiseShieldGoal) bends the offhand (left) arm up -- nothing in vanilla
+        // does this for a Mob automatically, see GMMAnimationUtils#poseBlockingArm. This class fully
+        // overrides setupAnim without calling super, so HumanoidModel's own private ArmPose dispatch
+        // never runs -- can't just set leftArmPose here, it would be ignored.
+        if (entity.isUsingItem() && entity.getUsedItemHand() == InteractionHand.OFF_HAND) {
+            GMMAnimationUtils.poseBlockingArm(this.leftArm, this.head, false);
+        }
     }
 
     public void resetRotations(ModelPart part, Rotation rotations) {

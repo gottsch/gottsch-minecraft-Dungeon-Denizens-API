@@ -5,12 +5,14 @@ import mod.gottsch.forge.gmm.core.config.MobConfigHelper;
 import mod.gottsch.forge.gmm.core.entity.ownership.Ownership;
 import mod.gottsch.forge.gmm.core.entity.ownership.OwnershipType;
 import mod.gottsch.forge.gmm.core.entity.ownership.ThrallOrder;
+import mod.gottsch.forge.gmm.core.util.CompanionSpawner;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.players.OldUsersConverter;
+import net.minecraft.tags.TagKey;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
@@ -79,6 +81,8 @@ public abstract class GMMMonster extends Monster implements OwnableEntity, IGMMM
      * config explicitly sets it, so a mob with no overrides behaves exactly as before. Subclasses that
      * already override {@code finalizeSpawn} pick this up automatically as long as they call
      * {@code super.finalizeSpawn(...)}, which all of GMM's mobs do.
+     *
+     * <p>Also the single hook point for spawn-time companions (see {@link #getCompanionPool()}).
      */
     @Override
     public SpawnGroupData finalizeSpawn(ServerLevelAccessor level, DifficultyInstance difficulty,
@@ -86,6 +90,7 @@ public abstract class GMMMonster extends Monster implements OwnableEntity, IGMMM
                                          @Nullable CompoundTag tag) {
         spawnGroupData = super.finalizeSpawn(level, difficulty, spawnType, spawnGroupData, tag);
         applyConfigAttributes(MobConfigHelper.get(level, EntityType.getKey(this.getType())));
+        trySpawnCompanions(level, spawnType);
         return spawnGroupData;
     }
 
@@ -117,6 +122,49 @@ public abstract class GMMMonster extends Monster implements OwnableEntity, IGMMM
         if (healToFull) {
             this.setHealth(this.getMaxHealth());
         }
+    }
+
+    /**
+     * Opt-in hook for spawn-time companions/escorts (e.g. a Beholder's minions). {@code null} by
+     * default (no companions); a subclass overrides it to return its own {@code gmm:<mob>/companions}
+     * tag (see {@code GMMTags.EntityTypes} for the per-caster reasoning). Tunable via
+     * {@code gmm:mob_config}: {@code spawnCompanions} (flag, default {@code true}), {@code
+     * companionChance} (0.0-1.0, default {@code 1.0}), {@code companionMin}/{@code companionMax}
+     * (default 1/2).
+     */
+    @Nullable
+    protected TagKey<EntityType<?>> getCompanionPool() {
+        return null;
+    }
+
+    /**
+     * Spawn types that may trigger the tag-driven auto-spawn: real wild spawns, plus the two ways a
+     * person deliberately places one (spawn egg, {@code /summon}). <b>The actual runaway/cyclical-
+     * spawning guard is not this list</b> — it's that {@link CompanionSpawner} always finalizes a
+     * companion with {@code MobSpawnType.MOB_SUMMONED}, a type deliberately left out of this list. As
+     * long as {@code MOB_SUMMONED} is never in here, recursion is capped at exactly one level by
+     * construction (no depth counter or NBT marker needed) no matter how permissive the rest of this
+     * list is — so it's safe to widen this further later (e.g. mob spawners) without touching the
+     * safety guarantee at all. A consumer that wants a hand-picked, one-off escort (e.g. a mini-boss
+     * room spawner) can bypass this entirely and call {@link CompanionSpawner} directly instead.
+     */
+    private static boolean triggersCompanions(MobSpawnType spawnType) {
+        return spawnType == MobSpawnType.NATURAL;
+    }
+
+    private void trySpawnCompanions(ServerLevelAccessor level, MobSpawnType spawnType) {
+        TagKey<EntityType<?>> pool = getCompanionPool();
+        if (pool == null || !triggersCompanions(spawnType)) {
+            return;
+        }
+        MobConfig config = MobConfigHelper.get(this);
+        if (!config.flag("spawnCompanions", true) || this.random.nextDouble() >= config.number("companionChance", 1.0D)) {
+            return;
+        }
+        int min = (int) config.number("companionMin", 1);
+        int max = Math.max(min, (int) config.number("companionMax", 2));
+        int count = min >= max ? min : min + this.random.nextInt(max - min + 1);
+        CompanionSpawner.spawnNear(this, pool, count);
     }
 
     @Override

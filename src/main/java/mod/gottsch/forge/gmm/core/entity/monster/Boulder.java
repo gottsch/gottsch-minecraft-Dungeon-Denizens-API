@@ -52,11 +52,9 @@ public class Boulder extends GMMMonster {
 	public static final float MAX_LEG_AMOUNT = 2F;
 	public static final float MAX_BODY_AMOUNT = 2F;
 
-	private float previousAmount;
 	// the current amount of transition (between 0 and 1, ie. %)
 	private float amount;
 
-	private float previousBodyAmount;
 	private float bodyAmount;
 
 	public Boulder(EntityType<? extends Monster> entityType, Level level) {
@@ -105,7 +103,6 @@ public class Boulder extends GMMMonster {
 			else if (isActive() && (getLoyaltyTicks() <= 0 || isSunBurn())) {
 				goToSleep();
 			}
-			previousAmount = amount;
 			if (isDormant()) {
 				amount = 1F;
 				bodyAmount = 1F;
@@ -422,14 +419,6 @@ public class Boulder extends GMMMonster {
 		}
 	}
 
-	public float getPreviousAmount() {
-		return previousAmount;
-	}
-
-	public void setPreviousAmount(float previousAmount) {
-		this.previousAmount = previousAmount;
-	}
-
 	public boolean isFallingAsleep() {
 		return getState().equals(FALLING_ASLEEP);
 	}
@@ -446,11 +435,4 @@ public class Boulder extends GMMMonster {
 		this.entityData.set(DATA_LOYAL_TICKS, ticks);
 	}
 
-	public float getPreviousBodyAmount() {
-		return previousBodyAmount;
-	}
-
-	public void setPreviousBodyAmount(float previousBodyAmount) {
-		this.previousBodyAmount = previousBodyAmount;
-	}
 }

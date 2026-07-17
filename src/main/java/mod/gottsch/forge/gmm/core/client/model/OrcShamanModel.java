@@ -20,16 +20,23 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.entity.LivingEntity;
 
 /**
- * Dedicated Orc Shaman rig -- a Blockbench-authored variant of {@link OrcModel} adding a cowl
- * (merged into the head cube as an inflated outer layer, same idiom as vanilla's hat layer) and a
- * robe (merged into the torso as a third stacked box). Ported from the Blockbench export at
- * {@code Blockbench/Dungeon Denizens/forge/orc shaman/OrcShamanModel.java}; kept the same
+ * Dedicated Orc Shaman rig -- a Blockbench-authored variant of {@link OrcModel} with a cowl (an
+ * inflated outer head cube with a genuine alpha cutout for the face, same idiom as vanilla's hat
+ * layer) and a full robe (shoulders + torso + independently-posed front/back flaps, merged into
+ * {@code orcBody}). Ported from the Blockbench export at
+ * {@code Blockbench/Dungeon Denizens/forge/orc shaman/OrcShaman.bbmodel}; kept the same
  * "extend HumanoidModel, hide the vanilla parts, drive the real geometry by hand" hackery
  * {@link OrcModel} already uses so vanilla's attack/walk animation keeps working.
  * <p>
+ * The staff is baked directly into {@code orcRightLowerArm}'s geometry ({@code staffShaft} /
+ * {@code staffHead}) rather than an equippable item -- {@code OrcShaman} keeps its main hand empty
+ * by design, see {@code OrcShaman#populateDefaultEquipmentSlots}.
+ * <p>
  * NOTE: the source .bbmodel also defines {@code leftShoulderPad}/{@code rightShoulderPad} groups,
  * excluded from export on purpose (confirmed with the user) -- this rig deliberately has no shoulder
- * pads, a robed caster doesn't wear an orc's spiked pauldrons.
+ * pads, a robed caster doesn't wear an orc's spiked pauldrons. The rig also has no hair part (the
+ * cowl covers the head entirely), so unlike {@link OrcModel} this model does not toggle hair
+ * visibility off {@link Orc#hasHair()}.
  *
  * @author Mark Gottschling on Jul 10, 2026
  */
@@ -43,7 +50,6 @@ public class OrcShamanModel<T extends LivingEntity> extends HumanoidModel<T> imp
 	private final ModelPart orcLeftLeg;
 	private final ModelPart orcRightLeg;
 	private final ModelPart mouth;
-	private final ModelPart hair;
 	private final ModelPart leftBracer;
 	private final ModelPart rightBracer;
 
@@ -62,7 +68,6 @@ public class OrcShamanModel<T extends LivingEntity> extends HumanoidModel<T> imp
 		this.orcLeftLeg = root.getChild("orcLeftLeg");
 		this.orcRightLeg = root.getChild("orcRightLeg");
 		mouth = orcHead.getChild("jaw");
-		hair = orcHead.getChild("hair");
 
 		rightBracer = orcRightArm.getChild("orcRightLowerArm").getChild("orcRightBracer");
 		leftBracer = orcLeftArm.getChild("orcLeftLowerArm").getChild("orcLeftBracer");
@@ -98,44 +103,43 @@ public class OrcShamanModel<T extends LivingEntity> extends HumanoidModel<T> imp
 		///////////////////
 
 		///// orc shaman model parts //////////////
-		// orcHead: base skull + an inflated (0.3) cowl overlay, same "hat layer" idiom vanilla uses
-		PartDefinition orcHead = partdefinition.addOrReplaceChild("orcHead", CubeListBuilder.create().texOffs(27, 21).addBox(-4.0F, -6.0F, -5.0F, 8.0F, 9.0F, 8.0F, new CubeDeformation(-0.1F))
-				.texOffs(78, 0).addBox(-4.0F, -6.0F, -5.0F, 8.0F, 9.0F, 8.0F, new CubeDeformation(0.3F)), PartPose.offset(0.0F, -2.0F, -3.0F));
+		// orcHead: skull "ears", eye plate, and an inflated cowl shell -- all merged into one cube list,
+		// same idiom the old torso used. The cowl carries a genuine alpha cutout around the jaw so the
+		// face shows through; DO NOT solid-fill that region when repainting the texture.
+		PartDefinition orcHead = partdefinition.addOrReplaceChild("orcHead", CubeListBuilder.create().texOffs(34, 83).addBox(-4.1F, -6.0F, -6.0F, 0.0F, 8.0F, 3.0F, new CubeDeformation(0.0F))
+				.texOffs(34, 83).addBox(4.1F, -6.0F, -6.0F, 0.0F, 8.0F, 3.0F, new CubeDeformation(0.0F))
+				.texOffs(70, 48).addBox(-4.0F, -5.0F, -4.0F, 8.0F, 7.0F, 2.0F, new CubeDeformation(-0.01F))
+				.texOffs(57, 0).addBox(-4.0F, -6.0F, -5.5F, 8.0F, 9.0F, 10.0F, new CubeDeformation(0.5F)), PartPose.offset(0.0F, -2.0F, -3.0F));
 
-		PartDefinition hair = orcHead.addOrReplaceChild("hair", CubeListBuilder.create(), PartPose.offset(-3.5F, -5.0F, -0.5F));
-
-		PartDefinition jaw = orcHead.addOrReplaceChild("jaw", CubeListBuilder.create().texOffs(17, 56).addBox(-4.0F, -0.5F, -3.5F, 8.0F, 2.0F, 4.0F, new CubeDeformation(0.2F)), PartPose.offsetAndRotation(0.0F, 1.5F, -1.5F, 0.2618F, 0.0F, 0.0F));
-		PartDefinition teeth2_r1 = jaw.addOrReplaceChild("teeth2_r1", CubeListBuilder.create().texOffs(20, 29).addBox(6.0F, -3.0F, 2.8F, 2.0F, 2.0F, 0.0F, new CubeDeformation(0.0F))
-				.texOffs(20, 29).addBox(3.0F, 0.0F, 2.8F, 2.0F, 2.0F, 0.0F, new CubeDeformation(0.0F)), PartPose.offsetAndRotation(-4.0F, -4.3F, -6.4F, 0.0F, 0.0F, 0.7854F));
+		PartDefinition jaw = orcHead.addOrReplaceChild("jaw", CubeListBuilder.create().texOffs(56, 66).addBox(-4.0F, -0.5F, -3.6F, 8.0F, 2.0F, 4.0F, new CubeDeformation(0.1F)), PartPose.offsetAndRotation(0.0F, 1.5F, -1.5F, 0.2618F, 0.0F, 0.0F));
+		PartDefinition teeth2_r1 = jaw.addOrReplaceChild("teeth2_r1", CubeListBuilder.create().texOffs(53, 37).addBox(6.0F, -3.0F, 2.8F, 2.0F, 2.0F, 0.0F, new CubeDeformation(0.0F)), PartPose.offsetAndRotation(-4.0F, -4.0F, -6.2F, 0.0F, 0.0F, 0.7854F));
+		PartDefinition teeth1_r1 = jaw.addOrReplaceChild("teeth1_r1", CubeListBuilder.create().texOffs(53, 37).addBox(3.0F, 0.0F, 2.8F, 2.0F, 2.0F, 0.0F, new CubeDeformation(0.0F)), PartPose.offsetAndRotation(-4.0F, -4.2F, -6.3F, 0.0F, 0.0F, 0.7854F));
 
 		PartDefinition orcBody = partdefinition.addOrReplaceChild("orcBody", CubeListBuilder.create(), PartPose.offset(0.0F, 24.0F, 0.0F));
 
-		// torso: shoulders + chest/vest + an added robe box (no shoulder pads -- hidden/omitted in the source model)
-		PartDefinition torso = orcBody.addOrReplaceChild("torso", CubeListBuilder.create().texOffs(0, 0).addBox(-10.0F, -26.0F, -3.0F, 20.0F, 4.0F, 6.0F, new CubeDeformation(0.0F))
-				.texOffs(0, 11).addBox(-5.5F, -22.0F, -3.0F, 11.0F, 11.0F, 6.0F, new CubeDeformation(0.0F))
-				.texOffs(81, 18).addBox(-3.5F, -26.0F, -3.0F, 7.0F, 17.0F, 6.0F, new CubeDeformation(0.1F)), PartPose.offset(0.0F, 0.0F, 0.0F));
+		// robe: shoulders + main torso box, plus front/back flaps posed independently of the torso so
+		// they can hang/swing on their own (no shoulder pads -- excluded from export on purpose)
+		PartDefinition robe = orcBody.addOrReplaceChild("robe", CubeListBuilder.create().texOffs(0, 29).addBox(-10.0F, -26.0F, -3.0F, 20.0F, 7.0F, 6.0F, new CubeDeformation(0.0F))
+				.texOffs(0, 43).addBox(-5.5F, -26.0F, -3.0F, 11.0F, 17.0F, 6.0F, new CubeDeformation(0.1F)), PartPose.offset(0.0F, 0.0F, 0.0F));
 
-		PartDefinition orcLeftArm = orcBody.addOrReplaceChild("orcLeftArm", CubeListBuilder.create().texOffs(60, 38).addBox(-1.5F, -1.0F, -2.0F, 4.0F, 7.0F, 4.0F, new CubeDeformation(0.1F)), PartPose.offsetAndRotation(7.0F, -23.0F, 0.0F, 0.2182F, 0.0F, -0.0873F));
-		PartDefinition orcLeftLowerArm = orcLeftArm.addOrReplaceChild("orcLeftLowerArm", CubeListBuilder.create().texOffs(59, 52).addBox(-1.5F, 0.0F, -2.1F, 4.0F, 8.0F, 4.0F, new CubeDeformation(0.0F)), PartPose.offsetAndRotation(0.0F, 5.0F, 0.0F, -0.4363F, 0.0F, 0.0F));
-		PartDefinition orcLeftBracer = orcLeftLowerArm.addOrReplaceChild("orcLeftBracer", CubeListBuilder.create().texOffs(17, 63).addBox(4.5F, -14.0F, -2.0F, 4.0F, 2.0F, 4.0F, new CubeDeformation(0.2F)), PartPose.offset(-6.0F, 18.0F, 0.0F));
+		PartDefinition frontRobe = robe.addOrReplaceChild("frontRobe", CubeListBuilder.create().texOffs(0, 43).addBox(-5.5F, -1.0F, 0.0F, 11.0F, 17.0F, 6.0F, new CubeDeformation(-0.1F)), PartPose.offsetAndRotation(0.0F, -25.0F, -3.0F, -0.0873F, 0.0F, 0.0F));
+		PartDefinition backRobe = robe.addOrReplaceChild("backRobe", CubeListBuilder.create().texOffs(35, 43).addBox(-5.5F, 0.0F, -6.0F, 11.0F, 16.0F, 6.0F, new CubeDeformation(-0.1F)), PartPose.offsetAndRotation(0.0F, -25.0F, 3.0F, 0.0873F, 0.0F, 0.0F));
 
-		PartDefinition orcRightArm = orcBody.addOrReplaceChild("orcRightArm", CubeListBuilder.create().texOffs(60, 26).addBox(-2.5F, -1.0F, -2.0F, 4.0F, 7.0F, 4.0F, new CubeDeformation(0.1F)), PartPose.offsetAndRotation(-7.0F, -23.0F, 0.0F, 0.1309F, 0.0F, 0.0436F));
-		PartDefinition orcRightLowerArm = orcRightArm.addOrReplaceChild("orcRightLowerArm", CubeListBuilder.create().texOffs(42, 56).addBox(-2.5F, 0.0F, -2.1F, 4.0F, 8.0F, 4.0F, new CubeDeformation(0.0F)), PartPose.offsetAndRotation(0.0F, 5.0F, 0.0F, -0.2182F, 0.0F, 0.0F));
-		PartDefinition orcRightBracer = orcRightLowerArm.addOrReplaceChild("orcRightBracer", CubeListBuilder.create().texOffs(0, 61).addBox(3.5F, -14.0F, -2.0F, 4.0F, 2.0F, 4.0F, new CubeDeformation(0.2F)), PartPose.offset(-6.0F, 18.0F, 0.0F));
+		PartDefinition orcLeftArm = orcBody.addOrReplaceChild("orcLeftArm", CubeListBuilder.create().texOffs(0, 78).addBox(-1.5F, -1.0F, -2.0F, 4.0F, 7.0F, 4.0F, new CubeDeformation(0.1F)), PartPose.offsetAndRotation(7.0F, -23.0F, 0.0F, 0.2182F, 0.0F, -0.0873F));
+		PartDefinition orcLeftLowerArm = orcLeftArm.addOrReplaceChild("orcLeftLowerArm", CubeListBuilder.create().texOffs(56, 73).addBox(-1.5F, 0.0F, -2.1F, 4.0F, 8.0F, 4.0F, new CubeDeformation(0.0F)), PartPose.offsetAndRotation(0.0F, 5.0F, 0.0F, -0.4363F, 0.0F, 0.0F));
+		PartDefinition orcLeftBracer = orcLeftLowerArm.addOrReplaceChild("orcLeftBracer", CubeListBuilder.create().texOffs(70, 58).addBox(4.5F, -14.0F, -2.0F, 4.0F, 2.0F, 4.0F, new CubeDeformation(0.2F)), PartPose.offset(-6.0F, 18.0F, 0.0F));
 
-		// extra sleeve/forearm boxes added for this variant only (asymmetric in the source model --
-		// only the right side has the extra rivet-studded bracer; ported faithfully, not symmetrized)
-		PartDefinition left_arm = orcBody.addOrReplaceChild("left_arm", CubeListBuilder.create().texOffs(0, 44).addBox(5.5F, -22.0F, -2.0F, 4.0F, 12.0F, 4.0F, new CubeDeformation(0.0F)), PartPose.offset(0.0F, 0.0F, 0.0F));
-		PartDefinition right_arm = orcBody.addOrReplaceChild("right_arm", CubeListBuilder.create().texOffs(0, 44).addBox(24.5F, -22.0F, -2.0F, 4.0F, 12.0F, 4.0F, new CubeDeformation(0.0F)), PartPose.offset(-34.0F, 0.0F, 0.0F));
-		PartDefinition right_bracer = right_arm.addOrReplaceChild("right_bracer", CubeListBuilder.create().texOffs(0, 61).addBox(3.5F, -15.0F, -2.0F, 4.0F, 3.0F, 4.0F, new CubeDeformation(0.2F))
-				.texOffs(15, 29).addBox(3.0F, -14.0F, -0.5F, 1.0F, 1.0F, 1.0F, new CubeDeformation(0.0F))
-				.texOffs(15, 29).addBox(5.0F, -14.0F, -2.5F, 1.0F, 1.0F, 1.0F, new CubeDeformation(0.0F))
-				.texOffs(15, 29).addBox(5.0F, -14.0F, 1.5F, 1.0F, 1.0F, 1.0F, new CubeDeformation(0.0F)), PartPose.offset(21.0F, 0.0F, 0.0F));
+		PartDefinition orcRightArm = orcBody.addOrReplaceChild("orcRightArm", CubeListBuilder.create().texOffs(17, 78).addBox(-2.5F, -1.0F, -2.0F, 4.0F, 7.0F, 4.0F, new CubeDeformation(0.1F)), PartPose.offsetAndRotation(-7.0F, -23.0F, 0.0F, 0.1309F, 0.0F, 0.0436F));
+		PartDefinition orcRightLowerArm = orcRightArm.addOrReplaceChild("orcRightLowerArm", CubeListBuilder.create().texOffs(73, 73).addBox(-2.5F, 0.0F, -2.1F, 4.0F, 8.0F, 4.0F, new CubeDeformation(0.0F))
+				// staff, baked into the geometry -- see OrcShaman#populateDefaultEquipmentSlots, no equippable item
+				.texOffs(0, 0).addBox(-1.0F, 6.0F, -13.0F, 1.0F, 1.0F, 27.0F, new CubeDeformation(0.0F))
+				.texOffs(21, 67).addBox(-2.0F, 5.0F, -14.0F, 3.0F, 3.0F, 3.0F, new CubeDeformation(0.0F)), PartPose.offsetAndRotation(0.0F, 5.0F, 0.0F, -0.2182F, 0.0F, 0.0F));
+		PartDefinition orcRightBracer = orcRightLowerArm.addOrReplaceChild("orcRightBracer", CubeListBuilder.create().texOffs(78, 20).addBox(3.5F, -14.0F, -2.0F, 4.0F, 2.0F, 4.0F, new CubeDeformation(0.2F)), PartPose.offset(-6.0F, 18.0F, 0.0F));
 
-		PartDefinition orcLeftLeg = partdefinition.addOrReplaceChild("orcLeftLeg", CubeListBuilder.create().texOffs(39, 39).addBox(-2.0F, 1.0F, -2.5F, 5.0F, 11.0F, 5.0F, new CubeDeformation(0.0F)), PartPose.offset(2.5F, 12.0F, 0.0F));
-		PartDefinition left_boot = orcLeftLeg.addOrReplaceChild("left_boot", CubeListBuilder.create().texOffs(55, 15).addBox(0.5F, -5.0F, -2.5F, 5.0F, 5.0F, 5.0F, new CubeDeformation(0.2F)), PartPose.offset(-2.5F, 12.0F, 0.0F));
-		PartDefinition orcRightLeg = partdefinition.addOrReplaceChild("orcRightLeg", CubeListBuilder.create().texOffs(18, 39).addBox(-3.0F, 1.0F, -2.5F, 5.0F, 11.0F, 5.0F, new CubeDeformation(0.0F)), PartPose.offset(-2.5F, 12.0F, 0.0F));
-		PartDefinition right_boot = orcRightLeg.addOrReplaceChild("right_boot", CubeListBuilder.create().texOffs(53, 0).addBox(-0.5F, -5.0F, -2.5F, 5.0F, 5.0F, 5.0F, new CubeDeformation(0.2F)), PartPose.offset(-2.5F, 12.0F, 0.0F));
+		PartDefinition orcLeftLeg = partdefinition.addOrReplaceChild("orcLeftLeg", CubeListBuilder.create().texOffs(57, 20).addBox(-2.0F, 1.0F, -2.5F, 5.0F, 11.0F, 5.0F, new CubeDeformation(0.0F)), PartPose.offset(2.5F, 12.0F, 0.0F));
+		PartDefinition left_boot = orcLeftLeg.addOrReplaceChild("left_boot", CubeListBuilder.create().texOffs(0, 67).addBox(0.5F, -5.0F, -2.5F, 5.0F, 5.0F, 5.0F, new CubeDeformation(0.2F)), PartPose.offset(-2.5F, 12.0F, 0.0F));
+		PartDefinition orcRightLeg = partdefinition.addOrReplaceChild("orcRightLeg", CubeListBuilder.create().texOffs(35, 66).addBox(-3.0F, 1.0F, -2.5F, 5.0F, 11.0F, 5.0F, new CubeDeformation(0.0F)), PartPose.offset(-2.5F, 12.0F, 0.0F));
+		PartDefinition right_boot = orcRightLeg.addOrReplaceChild("right_boot", CubeListBuilder.create().texOffs(70, 37).addBox(-0.5F, -5.0F, -2.5F, 5.0F, 5.0F, 5.0F, new CubeDeformation(0.2F)), PartPose.offset(-2.5F, 12.0F, 0.0F));
 
 		return LayerDefinition.create(meshdefinition, 128, 128);
 	}
@@ -152,10 +156,9 @@ public class OrcShamanModel<T extends LivingEntity> extends HumanoidModel<T> imp
 		orcRightArm.x = rightArmX;
 		orcLeftArm.x = leftArmX;
 
-		// get the orc entity and determine what parts are visible (no shoulder-pad toggles here --
-		// this rig has none, see class javadoc)
+		// get the orc entity and determine what parts are visible (no hair/shoulder-pad toggles here --
+		// this rig has neither, see class javadoc)
 		Orc orc = (Orc) entity;
-		hair.visible = orc.hasHair();
 		rightBracer.visible = orc.hasBracers();
 		leftBracer.visible = rightBracer.visible;
 

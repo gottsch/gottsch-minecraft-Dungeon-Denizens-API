@@ -4,6 +4,7 @@ import mod.gottsch.forge.gmm.core.config.MobConfig;
 import mod.gottsch.forge.gmm.core.config.MobConfigHelper;
 import mod.gottsch.forge.gmm.core.effect.GMMMobEffects;
 import mod.gottsch.forge.gmm.core.entity.ai.goal.EnthrallGoal;
+import mod.gottsch.forge.gmm.core.entity.ai.goal.RaiseShieldGoal;
 import mod.gottsch.forge.gmm.core.entity.ai.goal.SummonThrallGoal;
 import mod.gottsch.forge.gmm.core.entity.ai.goal.VariantPowerRangedBowAttackGoal;
 import mod.gottsch.forge.gmm.core.entity.ai.goal.target.SummonedOwnerTargetGoal;
@@ -12,6 +13,7 @@ import mod.gottsch.forge.gmm.core.entity.monster.ICastingMob;
 import mod.gottsch.forge.gmm.core.entity.ownership.Ownership;
 import mod.gottsch.forge.gmm.core.tag.GMMTags;
 import net.minecraft.core.BlockPos;
+import net.minecraft.tags.TagKey;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
@@ -67,12 +69,23 @@ import java.util.Optional;
  * flip {@link #isCasting()} (via {@link ICastingMob}) for the duration, which {@code WightModel}
  * reads to swap in a channeling arm pose instead of the normal walk/attack swing.
  *
+ * <p>Also spawns with an escort (see {@link #getCompanionPool()} / {@code gmm:wight/companions},
+ * Companion Spawning in {@code GMMMonster}) -- a lone Wight is just an easy-to-kite caster, so a
+ * small guard at spawn reads as an actual undead leader rather than a solitary target. Distinct from
+ * the two thrall-raising tags above, which are combat-time abilities, not a spawn-time escort.
+ *
  * <p>Flesh is a pale, bloodless recolor of the vanilla zombie base ({@code textures/entity/wight.png}
  * -- matches the corpse-white look of most D&amp;D depictions, not an ashen grey); the "faint armor
  * tint" from the catalog entry is a real equipped, dyed leather chestplate rendered by
  * {@code HumanoidArmorLayer} -- the recolor script only ever touches the flesh texture, never this
  * equipped "clothes" layer. The original ashen-grey ramp is preserved in the script as an
  * {@code ash_zombie} candidate rather than discarded.
+ *
+ * <p>A melee-rolled Wight may also carry a shield (from {@code wight/shields}, a configurable-chance
+ * roll like SkeletonWarrior's) -- {@link RaiseShieldGoal} raises it whenever a target closes to melee
+ * range, giving real vanilla shield-block damage reduction. A bow-rolled Wight never gets one: both
+ * hands are already spoken for by the bow, and a ranged Wight never melees anyway (see
+ * {@link #reassessWeaponGoal()}).
  *
  * @author Mark Gottschling on 7/9/2026
  */
@@ -102,6 +115,13 @@ public class Wight extends GMMMonster implements RangedAttackMob, ICastingMob {
     private static final int DEFAULT_ENTHRALL_COOLDOWN_TIME = 600;
     private static final double DEFAULT_ENTHRALL_RANGE = 16.0D;
     private static final int DEFAULT_MAX_THRALLS = 3;
+
+    // Shield (see RaiseShieldGoal): a configurable-chance roll, melee-only (see
+    // populateDefaultEquipmentSlots) -- a bow-rolled Wight never carries one.
+    private static final double DEFAULT_SHIELD_PROBABILITY = 0.35D;
+    private static final double DEFAULT_SHIELD_BLOCK_RANGE = 4.0D;
+    private static final int DEFAULT_SHIELD_BLOCK_COOLDOWN = 40;
+    private static final int DEFAULT_SHIELD_MAX_BLOCK_TICKS = 100;
 
     // Ash-grey tattered burial wrap -- the equipped "clothes" (see class doc); never touched by the
     // flesh recolor script.
@@ -134,6 +154,12 @@ public class Wight extends GMMMonster implements RangedAttackMob, ICastingMob {
         this.entityData.set(DATA_CASTING, casting);
     }
 
+    /** Spawns an escort alongside a natural/egg/summon spawn (see {@code GMMTags.EntityTypes.WIGHT_COMPANIONS}). */
+    @Override
+    protected TagKey<EntityType<?>> getCompanionPool() {
+        return GMMTags.EntityTypes.WIGHT_COMPANIONS;
+    }
+
     @Override
     protected void registerGoals() {
         MobConfig config = MobConfigHelper.get(this);
@@ -150,6 +176,12 @@ public class Wight extends GMMMonster implements RangedAttackMob, ICastingMob {
                 (int) config.number("enthrallCooldownTime", DEFAULT_ENTHRALL_COOLDOWN_TIME),
                 (int) config.number("maxThralls", DEFAULT_MAX_THRALLS),
                 config.number("enthrallRange", DEFAULT_ENTHRALL_RANGE)));
+        if (config.flag("shieldBlocking", true)) {
+            this.goalSelector.addGoal(4, new RaiseShieldGoal(this,
+                    config.number("shieldBlockRange", DEFAULT_SHIELD_BLOCK_RANGE),
+                    (int) config.number("shieldBlockCooldown", DEFAULT_SHIELD_BLOCK_COOLDOWN),
+                    (int) config.number("shieldMaxBlockTicks", DEFAULT_SHIELD_MAX_BLOCK_TICKS)));
+        }
         this.goalSelector.addGoal(5, new WaterAvoidingRandomStrollGoal(this, 1.0D));
         this.goalSelector.addGoal(6, new LookAtPlayerGoal(this, Player.class, 8.0F));
         this.goalSelector.addGoal(6, new RandomLookAroundGoal(this));
@@ -185,6 +217,10 @@ public class Wight extends GMMMonster implements RangedAttackMob, ICastingMob {
         return MobConfigHelper.get(this).number("lifesteal", DEFAULT_LIFESTEAL);
     }
 
+    private double shieldProbability() {
+        return MobConfigHelper.get(this).number("shieldProbability", DEFAULT_SHIELD_PROBABILITY);
+    }
+
     // --- equipment --------------------------------------------------------------------------------
 
     @Nullable
@@ -197,11 +233,25 @@ public class Wight extends GMMMonster implements RangedAttackMob, ICastingMob {
         return groupData;
     }
 
-    /** Arms the Wight from the {@code wight/weapons} tag (sword or bow) and dons its tattered wrap. */
+    /**
+     * Arms the Wight from the {@code wight/weapons} tag (sword or bow) and dons its tattered wrap.
+     * A melee-rolled Wight may also roll a shield (see {@link #shieldProbability()}) from
+     * {@code wight/shields} -- a bow-rolled one never does, both hands are already spoken for.
+     */
     protected void populateDefaultEquipmentSlots(RandomSource randomSource, DifficultyInstance difficulty) {
         Optional<Item> weapon = ForgeRegistries.ITEMS.tags()
                 .getTag(GMMTags.Items.WIGHT_WEAPONS).getRandomElement(randomSource);
         weapon.ifPresent(item -> this.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(item)));
+
+        if (!(this.getMainHandItem().getItem() instanceof BowItem) && randomSource.nextDouble() < shieldProbability()) {
+            Optional<Item> shield = ForgeRegistries.ITEMS.tags()
+                    .getTag(GMMTags.Items.WIGHT_SHIELDS).getRandomElement(randomSource);
+            shield.ifPresent(item -> {
+                this.setItemSlot(EquipmentSlot.OFFHAND, new ItemStack(item));
+                // flavor only, matches the robe/weapon below -- neither piece drops
+                this.handDropChances[EquipmentSlot.OFFHAND.getIndex()] = 0.0F;
+            });
+        }
 
         ItemStack robe = new ItemStack(Items.LEATHER_CHESTPLATE);
         if (robe.getItem() instanceof DyeableLeatherItem dyeable) {

@@ -3,6 +3,7 @@ package mod.gottsch.forge.gmm.core.entity.monster.skeleton;
 import mod.gottsch.forge.gmm.core.config.MobConfig;
 import mod.gottsch.forge.gmm.core.config.MobConfigHelper;
 import mod.gottsch.forge.gmm.core.entity.ai.goal.AvoidCrowdGoal;
+import mod.gottsch.forge.gmm.core.entity.ai.goal.RaiseShieldGoal;
 import mod.gottsch.forge.gmm.core.entity.ai.goal.target.SummonedOwnerTargetGoal;
 import mod.gottsch.forge.gmm.core.entity.monster.GMMMonster;
 import mod.gottsch.forge.gmm.core.tag.GMMTags;
@@ -47,6 +48,10 @@ import java.util.Optional;
  * {@link GMMTags.EntityTypes#SKELETON_CHAMPION_RALLY_ALLIES} entity-type tag, which consumers populate
  * with their own skeleton types (gmm ships the empty key, same pattern as the ally-alert goals).
  *
+ * <p>Always carries a shield (from {@code skeleton_champion/shields}) -- unlike SkeletonWarrior/Wight's
+ * configurable-chance roll, a pack leader is never left without one. {@link RaiseShieldGoal} raises it
+ * whenever a target closes to melee range, giving real vanilla shield-block damage reduction.
+ *
  * @author Mark Gottschling on 7/6/2026
  */
 public class SkeletonChampion extends GMMMonster {
@@ -65,6 +70,12 @@ public class SkeletonChampion extends GMMMonster {
     private static final double DEFAULT_CROWD_RADIUS = 4.0D;
     private static final int DEFAULT_MIN_CROWD = 2;
     private static final double DEFAULT_SPACING_MAX_TARGET_DISTANCE = 12.0D;
+
+    // Shield (see RaiseShieldGoal): unlike SkeletonWarrior/Wight, the Champion always carries one --
+    // no probability roll, see populateDefaultEquipmentSlots.
+    private static final double DEFAULT_SHIELD_BLOCK_RANGE = 4.0D;
+    private static final int DEFAULT_SHIELD_BLOCK_COOLDOWN = 40;
+    private static final int DEFAULT_SHIELD_MAX_BLOCK_TICKS = 100;
 
     public SkeletonChampion(EntityType<? extends Monster> entityType, Level level) {
         super(entityType, level);
@@ -86,6 +97,12 @@ public class SkeletonChampion extends GMMMonster {
                     1.1D));
         }
         this.goalSelector.addGoal(5, new MeleeAttackGoal(this, 1.0D, false));
+        if (config.flag("shieldBlocking", true)) {
+            this.goalSelector.addGoal(5, new RaiseShieldGoal(this,
+                    config.number("shieldBlockRange", DEFAULT_SHIELD_BLOCK_RANGE),
+                    (int) config.number("shieldBlockCooldown", DEFAULT_SHIELD_BLOCK_COOLDOWN),
+                    (int) config.number("shieldMaxBlockTicks", DEFAULT_SHIELD_MAX_BLOCK_TICKS)));
+        }
         this.goalSelector.addGoal(6, new WaterAvoidingRandomStrollGoal(this, 1.0D));
         this.goalSelector.addGoal(7, new LookAtPlayerGoal(this, Player.class, 8.0F));
         this.goalSelector.addGoal(7, new RandomLookAroundGoal(this));
@@ -135,7 +152,11 @@ public class SkeletonChampion extends GMMMonster {
         return groupData;
     }
 
-    /** Arm the champion with one random weapon from the {@code skeleton_champion/weapons} tag. */
+    /**
+     * Arm the champion with one random weapon from the {@code skeleton_champion/weapons} tag, and
+     * always a shield from {@code skeleton_champion/shields} -- unlike SkeletonWarrior/Wight's
+     * configurable-chance roll, the pack leader always carries one (see {@link RaiseShieldGoal}).
+     */
     @Override
     protected void populateDefaultEquipmentSlots(RandomSource randomSource, DifficultyInstance difficulty) {
         Optional<Item> weapon = ForgeRegistries.ITEMS.tags()
@@ -145,6 +166,12 @@ public class SkeletonChampion extends GMMMonster {
             // a modest drop chance makes felling one a worthwhile prize without flooding the loot pool
             this.handDropChances[EquipmentSlot.MAINHAND.getIndex()] = 0.15F;
             this.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(weapon.get()));
+        }
+        Optional<Item> shield = ForgeRegistries.ITEMS.tags()
+                .getTag(GMMTags.Items.SKELETON_CHAMPION_SHIELDS).getRandomElement(this.random);
+        if (shield.isPresent()) {
+            this.handDropChances[EquipmentSlot.OFFHAND.getIndex()] = 0.15F;
+            this.setItemSlot(EquipmentSlot.OFFHAND, new ItemStack(shield.get()));
         }
     }
 

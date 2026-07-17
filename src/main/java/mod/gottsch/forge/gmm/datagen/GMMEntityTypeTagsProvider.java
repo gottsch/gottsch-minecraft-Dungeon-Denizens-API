@@ -33,5 +33,16 @@ public class GMMEntityTypeTagsProvider extends EntityTypeTagsProvider {
 		// so a Wight is functional standalone; consumers add their own zombie-family mobs additively.
 		tag(GMMTags.EntityTypes.WIGHT_SUMMON_ALLIES).add(EntityType.ZOMBIE);
 		tag(GMMTags.EntityTypes.WIGHT_ENTHRALL_CANDIDATES).add(EntityType.ZOMBIE);
+
+		// Category: hostile monsters (cross-cutting, see GMMTags.EntityTypes doc) -- same roster as
+		// BEHOLDER_ENTHRALL_CANDIDATES, since "common overworld/dungeon hostile" is the same real-world
+		// set either way. First consumer is Wood Golem's protector targeting.
+		tag(GMMTags.EntityTypes.CATEGORY_HOSTILE_MONSTERS).add(
+				EntityType.ZOMBIE, EntityType.HUSK, EntityType.DROWNED,
+				EntityType.SKELETON, EntityType.STRAY,
+				EntityType.SPIDER, EntityType.CAVE_SPIDER,
+				EntityType.CREEPER, EntityType.WITCH,
+				EntityType.PILLAGER, EntityType.VINDICATOR,
+				EntityType.BLAZE, EntityType.PIGLIN);
 	}
 }

@@ -1,21 +1,19 @@
 /*
- * This file is part of  Dungeon Denizens.
+ * This file is part of gottsch's Monster Manual.
  * Copyright (c) 2024 Mark Gottschling (gottsch)
  *
- * All rights reserved.
- *
- * Dungeon Denizens is free software: you can redistribute it and/or modify
+ * gottsch's Monster Manual is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Dungeon Denizens is distributed in the hope that it will be useful,
+ * gottsch's Monster Manual is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public License
- * along with Dungeon Denizens.  If not, see <http://www.gnu.org/licenses/lgpl>.
+ * along with gottsch's Monster Manual.  If not, see <http://www.gnu.org/licenses/lgpl>.
  */
 package mod.gottsch.forge.gmm.core.entity.monster;
 
@@ -24,7 +22,6 @@ import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.MobType;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
@@ -46,8 +43,6 @@ import org.jetbrains.annotations.NotNull;
 public class Rat extends GMMMonster {
     public static float WIDTH = 0.8F;
     public static float HEIGHT = 0.25F;
-
-    private LivingEntity owner;
 
     public Rat(EntityType<? extends Monster> entityType, Level level) {
         super(entityType, level);

@@ -94,13 +94,9 @@ public class AlligatorGar extends WaterAnimal {
         this.goalSelector.addGoal(2, new MeleeAttackGoal(this, 1D, false) {
             @Override
             public boolean canUse() {
-                // must be in water AND target must be in water
-                // AND satisfy the base MeleeAttackGoal requirements
+                // must be in water AND satisfy the base MeleeAttackGoal requirements
                 return this.mob.isInWater()
                         && super.canUse();
-                        // check that the target is in water comes last, because the super.canUse
-                        // will check if a target exists first.
-//                        && this.mob.getTarget().isInWater(); // TO USE OR NOT TO USE
             }
 
             @Override

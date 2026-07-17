@@ -174,7 +174,6 @@ public class MagmaSkeletonModel<T extends Mob> extends SkeletonWarriorModel<T> {
             this.leftArm.x = Mth.cos(this.body.yRot) * 5.0F;
             this.rightArm.yRot += this.body.yRot;
             this.leftArm.yRot += this.body.yRot;
-//            this.leftArm.xRot += this.body.yRot;
             f = 1.0F - this.attackTime;
             f *= f;
             f *= f;
