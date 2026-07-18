@@ -47,8 +47,8 @@ public final class Ownership {
 
     /** No-op view returned for entities that can't be owned (players, non-living), so callers never NPE. */
     private static final IOwnable NULL = new IOwnable() {
-        @Override public UUID getOwnerUUID() { return null; }
-        @Override public void setOwnerUUID(UUID uuid) { }
+        @Override public UUID getOwnerId() { return null; }
+        @Override public void setOwnerId(UUID uuid) { }
         @Override public OwnershipType getOwnershipType() { return OwnershipType.NONE; }
         @Override public void setOwnershipType(OwnershipType type) { }
         @Override public int getRemainingLifespan() { return -1; }
@@ -80,7 +80,7 @@ public final class Ownership {
      */
     @Nullable
     public static LivingEntity resolveOwner(Entity mob) {
-        UUID uuid = of(mob).getOwnerUUID();
+        UUID uuid = of(mob).getOwnerId();
         if (uuid == null) {
             return null;
         }
@@ -100,14 +100,14 @@ public final class Ownership {
 
     /** @return true if {@code candidate} is {@code mob}'s owner. */
     public static boolean isOwnedBy(Entity mob, @Nullable Entity candidate) {
-        UUID uuid = of(mob).getOwnerUUID();
+        UUID uuid = of(mob).getOwnerId();
         return uuid != null && candidate != null && uuid.equals(candidate.getUUID());
     }
 
     /** Stamps ownership onto a mob. Lifespan is only retained for {@link OwnershipType#SUMMONED}. */
     public static void stampOwnership(Entity mob, @Nullable LivingEntity owner, OwnershipType type, int lifespan) {
         IOwnable ownable = of(mob);
-        ownable.setOwnerUUID(owner == null ? null : owner.getUUID());
+        ownable.setOwnerId(owner == null ? null : owner.getUUID());
         ownable.setOwnershipType(type);
         ownable.setRemainingLifespan(type == OwnershipType.SUMMONED ? lifespan : -1);
     }
@@ -223,8 +223,8 @@ public final class Ownership {
 
     /** Writes ownership state to {@code tag}. Only the "Owner" UUID (modern form) is written here. */
     public static void save(CompoundTag tag, IOwnable ownable) {
-        if (ownable.getOwnerUUID() != null) {
-            tag.putUUID(TAG_OWNER, ownable.getOwnerUUID());
+        if (ownable.getOwnerId() != null) {
+            tag.putUUID(TAG_OWNER, ownable.getOwnerId());
         }
         if (ownable.getOwnershipType() != OwnershipType.NONE) {
             tag.putString(TAG_TYPE, ownable.getOwnershipType().name());
@@ -252,7 +252,7 @@ public final class Ownership {
      */
     public static void load(CompoundTag tag, IOwnable ownable) {
         if (tag.hasUUID(TAG_OWNER)) {
-            ownable.setOwnerUUID(tag.getUUID(TAG_OWNER));
+            ownable.setOwnerId(tag.getUUID(TAG_OWNER));
         }
         ownable.setOwnershipType(OwnershipType.byName(tag.getString(TAG_TYPE)));
         ownable.setRemainingLifespan(tag.contains(TAG_LIFESPAN) ? tag.getInt(TAG_LIFESPAN) : -1);

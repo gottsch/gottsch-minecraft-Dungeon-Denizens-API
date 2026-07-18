@@ -154,7 +154,7 @@ public class Boulder extends GMMMonster {
 
 	public void hibernate() {
 		setState(DORMANT);
-		setOwnerUUID(null);
+		setOwnerId(null);
 		setLoyaltyTicks(0);
 	}
 
@@ -168,8 +168,8 @@ public class Boulder extends GMMMonster {
 
 	public void feed(UUID owner) {
 		setLoyaltyTicks(MAX_LOYALTY_TICKS);
-		if (getOwnerUUID() == null || isDormant()) {
-			setOwnerUUID(owner);
+		if (getOwnerId() == null || isDormant()) {
+			setOwnerId(owner);
 		}
 	}
 
@@ -239,7 +239,7 @@ public class Boulder extends GMMMonster {
 		if (tag.hasUUID(LEGACY_OWNER)) {
 			UUID uuid = tag.getUUID(LEGACY_OWNER);
 			try {
-				this.setOwnerUUID(uuid);
+				this.setOwnerId(uuid);
 			} catch (Throwable throwable) {
 				GMM.LOGGER.warn("Unable to set owner of boulder to -> {}", uuid);
 			}
@@ -286,7 +286,7 @@ public class Boulder extends GMMMonster {
 
 		@Override
 		public boolean canUse() {
-			if (!boulder.isActive() || boulder.getOwnerUUID() == null) {
+			if (!boulder.isActive() || boulder.getOwnerId() == null) {
 				return false;
 			}
 			return super.canUse();

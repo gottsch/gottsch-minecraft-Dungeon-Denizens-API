@@ -25,12 +25,12 @@ public class OwnershipData implements IOwnable {
 
     @Nullable
     @Override
-    public UUID getOwnerUUID() {
+    public UUID getOwnerId() {
         return ownerUUID;
     }
 
     @Override
-    public void setOwnerUUID(@Nullable UUID uuid) {
+    public void setOwnerId(@Nullable UUID uuid) {
         this.ownerUUID = uuid;
     }
 

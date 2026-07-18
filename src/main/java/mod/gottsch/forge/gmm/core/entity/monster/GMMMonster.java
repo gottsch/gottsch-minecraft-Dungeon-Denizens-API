@@ -58,7 +58,7 @@ public abstract class GMMMonster extends Monster implements OwnableEntity, IGMMM
 
     public final Predicate<LivingEntity> playerNotOwner = (entity) -> {
         if (entity instanceof Player) {
-            return getOwnerUUID() == null || !getOwnerUUID().equals(entity.getUUID());
+            return getOwnerId() == null || !getOwnerId().equals(entity.getUUID());
         }
         return true;
     };
@@ -180,17 +180,19 @@ public abstract class GMMMonster extends Monster implements OwnableEntity, IGMMM
         Ownership.load(tag, this);
         Ownership.loadThralls(tag, thralls);
         // legacy fallback: a pre-UUID "Owner" stored as a player name string.
-        if (getOwnerUUID() == null && tag.contains(Ownership.TAG_OWNER)) {
+        if (getOwnerId() == null && tag.contains(Ownership.TAG_OWNER)) {
             UUID uuid = OldUsersConverter.convertMobOwnerIfNecessary(this.getServer(), tag.getString(Ownership.TAG_OWNER));
             if (uuid != null) {
                 try {
-                    this.setOwnerUUID(uuid);
+                    this.setOwnerId(uuid);
                 } catch (Throwable throwable) {
                 }
             }
         }
     }
 
+    /** Satisfies vanilla {@link OwnableEntity}, which fixes this exact method name -- {@link #getOwnerId()}
+     * (GMM's own {@link mod.gottsch.forge.gmm.core.entity.ownership.IOwnable} contract) just delegates here. */
     @Override
     @Nullable
     public UUID getOwnerUUID() {
@@ -198,7 +200,13 @@ public abstract class GMMMonster extends Monster implements OwnableEntity, IGMMM
     }
 
     @Override
-    public void setOwnerUUID(@Nullable UUID uuid) {
+    @Nullable
+    public UUID getOwnerId() {
+        return getOwnerUUID();
+    }
+
+    @Override
+    public void setOwnerId(@Nullable UUID uuid) {
         this.entityData.set(DATA_OWNERUUID_ID, Optional.ofNullable(uuid));
     }
 

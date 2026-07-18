@@ -18,9 +18,9 @@ public interface IOwnable {
 
     /** @return the owner's UUID, or null if unowned. */
     @Nullable
-    UUID getOwnerUUID();
+    UUID getOwnerId();
 
-    void setOwnerUUID(@Nullable UUID uuid);
+    void setOwnerId(@Nullable UUID uuid);
 
     /** @return the kind of ownership; never null (defaults to {@link OwnershipType#NONE}). */
     OwnershipType getOwnershipType();

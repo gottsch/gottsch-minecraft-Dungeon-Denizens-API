@@ -21,7 +21,7 @@ public interface IGMMMonster extends IOwnable {
     // /// NOTE
     // these methods are all from other vanilla interfaces or abstract classes
     // but they are added here to ensure that this singular interface can be used
-    // for all GMM monsters. (getOwnerUUID/setOwnerUUID now come from IOwnable.)
+    // for all GMM monsters. (getOwnerId/setOwnerId now come from IOwnable.)
     // ///
     public void defineSynchedData();
     public void addAdditionalSaveData(CompoundTag tag);
