@@ -14,10 +14,15 @@ import net.minecraft.world.item.ShieldItem;
  * and lowers it again once the target backs off, breaks line of sight, or {@link #maxBlockTicks} of
  * continuous blocking elapses. A short cooldown after lowering keeps it from instantly re-raising.
  * <p>
- * Deliberately claims no {@link Goal.Flag}s: raising a shield doesn't stop the mob from moving or
- * swinging its mainhand weapon, exactly like a player holding block in one hand while attacking with
- * the other -- this runs <em>concurrently</em> with {@code MeleeAttackGoal}/ranged attack goals, not
- * instead of them.
+ * Deliberately claims no {@link Goal.Flag}s: raising a shield doesn't stop the mob from moving,
+ * so this runs <em>concurrently</em> with {@code MeleeAttackGoal}/ranged attack goals rather than
+ * instead of them (adding {@code MOVE}/{@code LOOK} flags would keep it from ever running while the
+ * mob is in combat, which is the opposite of what's wanted).
+ * <p>
+ * The shield does <em>not</em> stay up through an attack, however: the instant the mob swings its
+ * mainhand, {@link #canContinueToUse()} drops the goal so the shield lowers, and the {@code stop()}
+ * cooldown ({@code cooldownTicks}) then gates how soon it can re-raise -- a mob can't block and swing
+ * in the same instant, and there's a brief usage cooldown after every lower.
  * <p>
  * The actual damage reduction isn't anything this goal implements -- calling
  * {@code startUsingItem(OFF_HAND)} alone is enough to make vanilla's own generic
@@ -57,9 +62,16 @@ public class RaiseShieldGoal extends Goal {
         return target != null && target.isAlive() ? target : null;
     }
 
+    // true while the mainhand attack swing is playing out. doHurtTarget/ranged attacks call
+    // Mob#swing(MAIN_HAND), which sets these for the swing's duration -- so the shield stays down for
+    // the whole swing, not just the single tick the attack lands.
+    private boolean swingingMainHand() {
+        return this.mob.swinging && this.mob.swingingArm == InteractionHand.MAIN_HAND;
+    }
+
     @Override
     public boolean canUse() {
-        if (this.mob.tickCount < this.cooldownUntilTick || !holdingShield()) {
+        if (this.mob.tickCount < this.cooldownUntilTick || swingingMainHand() || !holdingShield()) {
             return false;
         }
         LivingEntity target = liveTarget();
@@ -70,7 +82,8 @@ public class RaiseShieldGoal extends Goal {
 
     @Override
     public boolean canContinueToUse() {
-        if (!holdingShield() || (this.maxBlockTicks > 0 && this.blockTicks >= this.maxBlockTicks)) {
+        if (swingingMainHand() || !holdingShield()
+                || (this.maxBlockTicks > 0 && this.blockTicks >= this.maxBlockTicks)) {
             return false;
         }
         LivingEntity target = liveTarget();

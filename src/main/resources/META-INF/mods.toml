@@ -19,7 +19,7 @@ updateJSONURL="https://raw.githubusercontent.com/gottsch/gottsch-minecraft-Monst
 displayURL="https://www.curseforge.com/minecraft/mc-mods/gottschs-monster-manual" #optional
 
 # A file name (in the root of the mod JAR) containing a logo for display
-logoFile="ddenizens_curseforge_logo.png" #optional
+logoFile="monster_manual_mod_logo.png" #optional
 
 # A text field displayed in the mod UI
 credits="" #optional

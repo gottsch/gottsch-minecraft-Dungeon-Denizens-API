@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.1] - 2026- 07-17
+
+### Added
+- mod logo
+
+### Fixed
+- Shield-holding mobs (Skeleton Warrior, Skeleton Champion, Wight) no longer block and attack
+  simultaneously. `RaiseShieldGoal` now lowers the shield for the duration of a mainhand attack
+  swing and applies the existing block cooldown before the shield can be raised again.
+
 ## [1.0.0] - 2026- 07-17
 
 gottsch's Monster Manual (GMM) is a Minecraft Forge library mod for the 1.20.1 "Dungeon Denizens"
