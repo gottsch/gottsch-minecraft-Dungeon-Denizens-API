@@ -1,8 +1,8 @@
 # gottsch's Monster Manual (GMM)
 
-**The shared monster library behind gottsch's dungeon mods.**
+**A base-class monster library any Forge mod can build on.**
 
-GMM doesn't add anything to your world by itself. It's a base-class library — a shared collection of mob classes, AI goals, models, renderers, and textures that other mods build their monsters on top of. If you have a mod like **Dungeon Denizens** installed, GMM is the engine running underneath it.
+GMM doesn't add anything to your world by itself. It's a base-class library — a shared collection of mob classes, AI goals, models, renderers, and textures that other mods build their monsters on top of. It isn't tied to any one developer or family of mods — if you have a mod like **Dungeon Denizens** installed, GMM is the engine running underneath it, but that's one example, not the whole story.
 
 ---
 
@@ -17,7 +17,7 @@ GMM registers **zero** entities, items, or blocks of its own. It only supplies:
 - Shared models, renderers, and textures
 - A datapack-driven config system for tuning spawn gating and mob behavior without touching code
 
-Consuming mods (Dungeon Denizens, and future gottsch dungeon mods) register their own `EntityType`s that point at GMM's classes, and reuse GMM's assets. When two mods need the same monster behavior, they share one implementation instead of maintaining two.
+Consuming mods (Dungeon Denizens today, and any other mod that wants to) register their own `EntityType`s that point at GMM's classes, and reuse GMM's assets. When two mods need the same monster behavior, they share one implementation instead of maintaining two.
 
 ---
 
@@ -60,7 +60,7 @@ You can also customize what GMM's monsters wield, eat, and respond to through it
 
 ## For developers
 
-GMM exists so dungeon-mob mods don't have to duplicate AI and rendering code. If you're building a mod that wants gottsch-style monsters:
+GMM exists so dungeon-mob mods don't have to duplicate AI and rendering code. If you're building a mod that wants D&D-flavored monsters:
 
 - Depend on GMM and register your own `EntityType`s pointing at its base classes
 - Contribute equipment, allies, and summon targets through GMM's tag system (`gmm:`-namespaced entity-type and item tags) instead of hardcoding cross-mod references — see the **[Tags Reference](docs/TAGS.md)**
@@ -88,4 +88,4 @@ GMM is required by:
 
 ## License
 
-Licensed under the **GNU Lesser General Public License (LGPL)**. Source available on [GitHub](https://github.com/gottsch/gottsch-minecraft-Dungeon-Denizens-API).
+Licensed under the **GNU Lesser General Public License (LGPL)**. Source available on [GitHub](https://github.com/gottsch/gottsch-minecraft-Monster-Manual).
