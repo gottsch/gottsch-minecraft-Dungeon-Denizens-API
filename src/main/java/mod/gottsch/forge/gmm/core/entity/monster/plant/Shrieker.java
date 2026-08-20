@@ -118,10 +118,35 @@ public class Shrieker extends GMMMonster {
         return spawnGroupData;
     }
 
+
+    /**
+     * Rooted means rooted: nothing shoves it off its square.
+     *
+     * <p>{@code setNoAi(true)} and {@code MOVEMENT_SPEED 0} between them only stop it moving itself.
+     * Neither touches <em>physics</em>: entity-vs-entity collision runs through
+     * {@code EntitySelector.pushableBy}, which asks {@link #isPushable()}, so without this a player
+     * walking into one slides it across the floor like a boat. Vanilla's {@code ArmorStand}
+     * overrides exactly this, for exactly this reason.</p>
+     *
+     * <p>Deliberately not datapack-driven, unlike the attributes: "is this thing a plant" is a
+     * property of the mob rather than a tuning knob, and a pushable plant is a bug in any pack.</p>
+     */
+    @Override
+    public boolean isPushable() {
+        return false;
+    }
+
     public static AttributeSupplier.Builder createAttributes() {
         return Monster.createMonsterAttributes()
                 .add(Attributes.MAX_HEALTH, DEFAULT_MAX_HEALTH)
                 .add(Attributes.MOVEMENT_SPEED, 0.0D)
+                // The other half of "cannot be moved". isPushable stops something walking into it;
+                // this stops a HIT sliding it, which is the same visual bug arriving by a different
+                // route -- and the likelier one, since these are monsters and get attacked.
+                // A knob rather than a rule, unlike isPushable: GMMMonster#applyConfigAttributes
+                // overwrites this from a mob_config's "knockbackResistance" when a pack sets one,
+                // so a pack that wants its fungi to skid can have them.
+                .add(Attributes.KNOCKBACK_RESISTANCE, 1.0D)
                 .add(Attributes.ATTACK_DAMAGE, 0.0D);
     }
 
