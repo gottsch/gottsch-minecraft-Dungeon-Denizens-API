@@ -5,6 +5,59 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- ⚓ **Anchoring, for every GMM mob** — a consumer can post any GMM mob to guard a position by
+  calling vanilla's own `Mob#restrictTo(BlockPos, int)` on the instance it just placed. An anchored
+  mob keeps to its post while idle and never despawns; an unanchored one is untouched, so this is
+  opt-in per *instance*, not per mob type. New `Anchor` helper plus four members on `GMMMonster` and
+  `GMMFlyingMonster`.
+
+  Vanilla leaves two holes that make `restrictTo` alone insufficient, and both are now closed in one
+  place: `Mob#checkDespawn` never consults the restriction, so a posted guardian wandered off the
+  despawn cliff like any natural spawn; and the restrict centre/radius are persisted by nothing at
+  all (`Entity#saveWithoutId` writes `Glowing`, `Silent`, `NoGravity` and `Invulnerable` — vanilla
+  only ever sets a restriction on villagers, whose brain re-derives a home from a bed), so a
+  guardian came back from a chunk unload free to wander and free to despawn.
+
+  Anchoring is deliberately **not a leash**. The radius gates despawning and the positions the
+  wander goals pick — `WaterAvoidingRandomStrollGoal` runs its candidates through
+  `isWithinRestriction`, which is what keeps an idle guardian in its room with no extra goal — and
+  it is suspended while the mob is engaged. Left unqualified it does something worse than leash: a
+  guardian that chased an intruder out of its room spends the rest of its life trying to wander
+  back, mid-fight included. `isAnchorSuspended()` is the overridable hook, defaulting to "has a
+  target"; a mob with a dormant/active split of its own overrides it. No goals are installed — a
+  consumer wanting a mob to actively walk back to its post adds `MoveTowardsRestrictionGoal`.
+
+### Changed
+- ⚓ **Grave Zombie, Animated Armor and Wood Golem now share the one anchor implementation.** All
+  three had grown their own copy of the same `checkDespawn` override, the same `isWithinRestriction`
+  exemption and the same `HomePosX/Y/Z` + `HomeRadius` save-data block. Behaviour is unchanged and
+  the tag names are kept verbatim, so guardians already standing in an existing world stay anchored;
+  each mob now only states the part that was ever specific to it — the grave zombie's anchor holds
+  until it rises (its active *phase*, not merely having a target) and the armour's until it
+  activates, both now expressed as one-line `isAnchorSuspended()` overrides.
+
+### Fixed
+- 🧟 **Grave Zombie** — a dormant zombie came back from a chunk unload/reload **visible**, showing as
+  a zombie head stuck in the floor rather than as a hidden grave. Being burrowed is two things — AI
+  off and invisible — and only the first survived a save: `Mob` persists `NoAi`, but nothing at all
+  persists the `Invisible` shared-flag bit (`Entity#saveWithoutId` writes `Glowing`, `Silent`,
+  `NoGravity` and `Invulnerable`, and vanilla otherwise only ever gets invisibility from a potion
+  effect, which is persisted in its own right). The head showed because `GraveZombieModel` sinks the
+  rig 26 model units and deliberately stops short of burying it, on the assumption that a fully
+  buried zombie is invisible anyway. `readAdditionalSaveData` now restores the flag alongside the
+  phase it already restored, so the state can no longer come back half-applied. Nothing else changes:
+  a zombie caught mid-reburrow still finishes sinking and sets the flag itself.
+- 🧟 **Grave Zombie** — the buried pose now sinks the rig *fully* under the ground plane
+  (`SINK_DEPTH` 26 → 34 model units). The humanoid rig spans model y -8 to 24, so 32 is the exact
+  depth that drops the crown of the head to ground level and the rest is margin for the hat and armor
+  layers. The old 26 was chosen deliberately, on the reasoning that a buried zombie is invisible and
+  the sink only had to read as "emerging" mid-transition — so the invisibility flag was the only
+  thing hiding the last ~5 units. It isn't any more. Visible effect while surfacing: the zombie now
+  climbs half a block further out of the ground over the same telegraph.
+
 ## [1.1.0] - 2026-08-20
 
 ### Added

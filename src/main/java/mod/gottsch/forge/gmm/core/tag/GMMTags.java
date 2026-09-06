@@ -31,6 +31,12 @@ public class GMMTags {
         // Orc weapon pool (consumer-populated)
         public static final TagKey<Item> ORC_WEAPONS = mod(GMM.MOD_ID, "orc/weapons");
 
+        // The war-chief's own blade, separate from the warband's so a pack carrying stone axes does
+        // not arm its leader with one. gmm ships iron/diamond/netherite axes as the default;
+        // consumers add to it additively. An emptied pool falls back to ORC_WEAPONS rather than to bare fists --
+        // see OrcWarlord#populateDefaultEquipmentSlots.
+        public static final TagKey<Item> ORC_WARLORD_WEAPONS = mod(GMM.MOD_ID, "orc_warlord/weapons");
+
         // Skeleton Champion weapon pool: the elite leader picks its main-hand weapon from this on spawn.
         // gmm ships diamond + netherite swords as the default (an elite carries elite steel); consumers
         // add their own weapons additively.
@@ -95,6 +101,11 @@ public class GMMTags {
 
         // mobs a Skeleton Champion rallies (buffs) while alive — consumers add their skeleton types
         public static final TagKey<EntityType<?>> SKELETON_CHAMPION_RALLY_ALLIES = mod(GMM.MOD_ID, "skeleton_champion/rally_allies");
+
+        // mobs an Orc Warlord rallies (buffs) while alive. Its own key rather than sharing the
+        // Champion's: the two lead different things, and a shared tag would have a skeleton
+        // champion buffing orcs the moment a consumer populated it for either one.
+        public static final TagKey<EntityType<?>> ORC_WARLORD_RALLY_ALLIES = mod(GMM.MOD_ID, "orc_warlord/rally_allies");
 
         // mobs a Beholder can Enthrall (EnthrallGoal). Scoped per-caster rather than shared: a
         // Beholder's "high IQ, psychic powers" flavor lets it dominate stronger mobs than, say, a

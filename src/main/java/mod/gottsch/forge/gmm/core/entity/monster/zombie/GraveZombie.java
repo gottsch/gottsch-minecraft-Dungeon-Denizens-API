@@ -58,7 +58,9 @@ import javax.annotation.Nullable;
  * with vanilla's own {@code Mob#restrictTo(BlockPos, int)} (the same mechanism villagers/iron golems
  * use) — a restricted instance never repositions (always rises exactly where it's buried) and never
  * despawns, so a mapmaker can hand-place a graveyard of zombies that rise from their own graves. The
- * restriction isn't persisted by vanilla {@code Mob}, so this class saves/restores it itself.
+ * restriction isn't persisted by vanilla {@code Mob}, so this class saves/restores it itself. Same
+ * goes for the burrowed invisibility, for a different reason &mdash; the flag is saved by nothing at
+ * all (see {@link #readAdditionalSaveData}).
  *
  * @author Mark Gottschling on 7/8/2026
  */
@@ -391,36 +393,14 @@ public class GraveZombie extends GMMMonster {
     }
 
     /**
-     * A structure-placed grave (see the class doc) never despawns, matching the golem-family "never
-     * despawns / anchored to a post" pattern the {@code MobIdeasCatalog} documents for Wood Golem. A
-     * plain naturally-spawned ambusher (no restriction set) still despawns normally.
+     * The grave zombie's anchor holds until it actually rises: a buried grave is meant to stay
+     * exactly where it was placed, so "engaged" here is the active PHASE, not merely having noticed
+     * someone. Falls through to the base rule (having a target) so a zombie that is somehow active
+     * without a phase change is not leashed either. See {@code Anchor}.
      */
     @Override
-    public void checkDespawn() {
-        if (this.hasRestriction()) {
-            return;
-        }
-        super.checkDespawn();
-    }
-
-    /**
-     * {@code restrictTo}'s radius is only meant to gate {@link #checkDespawn} and pin exactly where a
-     * restricted grave rises (see {@code tickBurrowed}'s own {@code hasRestriction()} check) — it was
-     * never meant to leash the zombie back to its grave mid-fight. {@code WaterAvoidingRandomStrollGoal}
-     * (registered unconditionally, since AI is fully suppressed via {@code setNoAi} while dormant
-     * anyway) picks candidate positions through this exact method, so a restricted grave chasing a
-     * target away from its plot would otherwise keep trying to wander back once it lost the chase —
-     * same bug {@code AnimatedArmor} had with its own gated stroll goal. {@link #hasRestriction()}/
-     * {@link #getRestrictCenter()}/{@link #getRestrictRadius()} themselves are untouched, so
-     * {@link #checkDespawn} and the burrowed-phase rise-in-place check keep working off the original
-     * grave position regardless.
-     */
-    @Override
-    public boolean isWithinRestriction(BlockPos pos) {
-        if (getPhase() == PHASE_ACTIVE) {
-            return true;
-        }
-        return super.isWithinRestriction(pos);
+    protected boolean isAnchorSuspended() {
+        return getPhase() == PHASE_ACTIVE || super.isAnchorSuspended();
     }
 
     // --- persistence ----------------------------------------------------------------------------
@@ -429,16 +409,6 @@ public class GraveZombie extends GMMMonster {
     public void addAdditionalSaveData(CompoundTag tag) {
         super.addAdditionalSaveData(tag);
         tag.putInt("Phase", getPhase());
-        // vanilla Mob's own restrictCenter/restrictRadius (set via restrictTo(), e.g. by a consumer's
-        // structure-placement code) are never persisted by the base class -- save/restore them
-        // ourselves so a placed grave zombie stays anchored across a save/reload.
-        if (this.hasRestriction()) {
-            BlockPos home = this.getRestrictCenter();
-            tag.putInt("HomePosX", home.getX());
-            tag.putInt("HomePosY", home.getY());
-            tag.putInt("HomePosZ", home.getZ());
-            tag.putInt("HomeRadius", (int) this.getRestrictRadius());
-        }
     }
 
     @Override
@@ -447,10 +417,22 @@ public class GraveZombie extends GMMMonster {
         if (tag.contains("Phase")) {
             setPhase(tag.getInt("Phase"));
             this.lastPhase = getPhase();
-        }
-        if (tag.contains("HomePosX")) {
-            BlockPos home = new BlockPos(tag.getInt("HomePosX"), tag.getInt("HomePosY"), tag.getInt("HomePosZ"));
-            this.restrictTo(home, tag.getInt("HomeRadius"));
+            // Invisibility is the other HALF of what "burrowed" means, and unlike NoAi -- which Mob
+            // persists for us -- vanilla never saves it. Entity#saveWithoutId writes Glowing,
+            // Silent, NoGravity and Invulnerable, but the Invisible shared-flag bit is not among
+            // them, because vanilla only ever gets invisibility from a potion effect that is itself
+            // persisted. So a dormant grave zombie came back from a chunk unload/reload still AI
+            // off and still PHASE_BURROWED -- and therefore still sunk by GraveZombieModel, which
+            // sinks the rig 26 units and deliberately stops short of hiding it (it is supposed to be
+            // invisible down there) -- but fully visible. What that reads as in game is a zombie
+            // head stuck in the floor, permanently, since a burrowed zombie only rises for a
+            // non-creative player inside its ambush radius.
+            //
+            // Only for BURROWED. A save caught mid-REBURROW resumes with phaseTicks back at 0, sinks
+            // again from the top and ends in finishReburrow(), which sets the flag itself.
+            if (getPhase() == PHASE_BURROWED && ambushEnabled()) {
+                this.setInvisible(true);
+            }
         }
     }
 

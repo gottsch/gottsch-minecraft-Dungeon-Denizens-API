@@ -126,59 +126,15 @@ public class WoodGolem extends GMMMonster {
                 .add(Attributes.ATTACK_DAMAGE, 10.0D);
     }
 
-    /**
-     * A structure/hand-placed golem (a consumer calling vanilla's own {@code Mob#restrictTo(BlockPos,
-     * int)}) never despawns -- same "anchored guardian, not a wandering natural spawn" pattern
-     * {@code GraveZombie}/{@code AnimatedArmor} already use. Since Wood Golem never natural-spawns at
-     * all (see the class doc), a real deployment always has a restriction set -- this check is here
-     * purely for consistency with the rest of the golem family, not because an unrestricted case is
-     * expected in practice.
-     */
-    @Override
-    public void checkDespawn() {
-        if (this.hasRestriction()) {
-            return;
-        }
-        super.checkDespawn();
-    }
-
-    /**
-     * {@code restrictTo}'s radius is only meant to gate {@link #checkDespawn} and feed
-     * {@code MoveTowardsRestrictionGoal}'s "wander back toward the post" behaviour while idle -- it was
-     * never meant to leash the golem back mid-fight. Once it actually has a target, every position reads
-     * as within range, exactly the same override {@code AnimatedArmor}/{@code GraveZombie} apply for
-     * their own combat/active-phase exceptions.
-     */
-    @Override
-    public boolean isWithinRestriction(BlockPos pos) {
-        if (this.getTarget() != null) {
-            return true;
-        }
-        return super.isWithinRestriction(pos);
-    }
 
     @Override
     public void addAdditionalSaveData(CompoundTag tag) {
         super.addAdditionalSaveData(tag);
-        // vanilla Mob's own restrictCenter/restrictRadius are never persisted by the base class --
-        // save/restore them ourselves so a placed golem stays anchored across a save/reload, same
-        // gotcha GraveZombie/AnimatedArmor's class docs document for their own restrictTo() usage.
-        if (this.hasRestriction()) {
-            BlockPos home = this.getRestrictCenter();
-            tag.putInt("HomePosX", home.getX());
-            tag.putInt("HomePosY", home.getY());
-            tag.putInt("HomePosZ", home.getZ());
-            tag.putInt("HomeRadius", (int) this.getRestrictRadius());
-        }
     }
 
     @Override
     public void readAdditionalSaveData(CompoundTag tag) {
         super.readAdditionalSaveData(tag);
-        if (tag.contains("HomePosX")) {
-            BlockPos home = new BlockPos(tag.getInt("HomePosX"), tag.getInt("HomePosY"), tag.getInt("HomePosZ"));
-            this.restrictTo(home, tag.getInt("HomeRadius"));
-        }
     }
 
     /**

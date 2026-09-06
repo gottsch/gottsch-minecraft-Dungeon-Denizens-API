@@ -3,6 +3,7 @@ package mod.gottsch.forge.gmm.core.entity.monster;
 import mod.gottsch.forge.gmm.core.config.MobConfig;
 import mod.gottsch.forge.gmm.core.config.MobConfigHelper;
 import mod.gottsch.forge.gmm.core.entity.ownership.Ownership;
+import mod.gottsch.forge.gmm.core.util.Anchor;
 import mod.gottsch.forge.gmm.core.entity.ownership.OwnershipType;
 import mod.gottsch.forge.gmm.core.entity.ownership.ThrallOrder;
 import mod.gottsch.forge.gmm.core.util.CompanionSpawner;
@@ -148,6 +149,7 @@ public abstract class GMMFlyingMonster extends FlyingMob implements OwnableEntit
         super.addAdditionalSaveData(tag);
         Ownership.save(tag, this);
         Ownership.saveThralls(tag, thralls);
+        Anchor.save(tag, this);
     }
 
     @Override
@@ -155,6 +157,7 @@ public abstract class GMMFlyingMonster extends FlyingMob implements OwnableEntit
         super.readAdditionalSaveData(tag);
         Ownership.load(tag, this);
         Ownership.loadThralls(tag, thralls);
+        Anchor.load(tag, this);
         // legacy fallback: a pre-UUID "Owner" stored as a player name string.
         if (getOwnerId() == null && tag.contains(Ownership.TAG_OWNER)) {
             UUID uuid = OldUsersConverter.convertMobOwnerIfNecessary(this.getServer(), tag.getString(Ownership.TAG_OWNER));
@@ -241,5 +244,51 @@ public abstract class GMMFlyingMonster extends FlyingMob implements OwnableEntit
     @Nullable
     public LivingEntity getSummonedOwner() {
         return Ownership.resolveOwner(this);
+    }
+
+    // --- anchoring (a mob posted to guard a position) ---------------------------------------------
+    //
+    // See Anchor for the whole of why this is not just restrictTo(): vanilla neither persists the
+    // restriction nor lets it gate despawning. Everything here is inert on a mob nobody anchored.
+
+    /**
+     * An anchored mob never despawns. The restriction IS the persistence flag, so a consumer that
+     * posts a guardian gets both from one call and there is no second thing to remember.
+     */
+    @Override
+    public void checkDespawn() {
+        if (this.hasRestriction()) {
+            return;
+        }
+        super.checkDespawn();
+    }
+
+    /**
+     * The anchor holds while idle and lets go while engaged.
+     *
+     * <p>{@code WaterAvoidingRandomStrollGoal} picks its candidate positions through this method, so
+     * an unqualified restriction does not merely fail to leash a mob mid-fight &mdash; it makes one
+     * that chased an intruder out of its room keep trying to wander back for the rest of its life.
+     * {@code hasRestriction()}/{@code getRestrictCenter()}/{@code getRestrictRadius()} are left
+     * untouched, so {@link #checkDespawn} and anything else reading the post keep working off the
+     * original placement however far combat has dragged the mob since.</p>
+     */
+    @Override
+    public boolean isWithinRestriction(BlockPos pos) {
+        if (isAnchorSuspended()) {
+            return true;
+        }
+        return super.isWithinRestriction(pos);
+    }
+
+    /**
+     * Whether the anchor is currently suspended. Default: while the mob has a target.
+     *
+     * <p>Overridden by mobs with a dormant/active split of their own, where "engaged" is a phase
+     * rather than a target &mdash; a buried grave zombie and an unactivated suit of armour both have
+     * an anchor that must hold through more than just "no target yet".</p>
+     */
+    protected boolean isAnchorSuspended() {
+        return this.getTarget() != null;
     }
 }

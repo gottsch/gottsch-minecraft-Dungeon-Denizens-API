@@ -91,6 +91,11 @@ public class GMMItemTagsProvider extends ItemTagsProvider {
 		tag(GMMTags.Items.SKELETON_CHAMPION_WEAPONS).add(Items.DIAMOND_SWORD, Items.NETHERITE_SWORD);
 		tag(GMMTags.Items.SKELETON_CHAMPION_SHIELDS).add(Items.SHIELD);
 
+		// Orc Warlord weapon pool: a chief carries a real axe rather than the warband's chipped
+		// stone one (ORC_WEAPONS above is stone sword + stone axe). Axes rather than swords because
+		// the orc rig and its animation were built around one. Consumers add their own additively.
+		tag(GMMTags.Items.ORC_WARLORD_WEAPONS).add(Items.IRON_AXE, Items.DIAMOND_AXE, Items.NETHERITE_AXE);
+
 		// Corrosion immunity (Acid Skeleton, Gelatinous Cube, ...): diamond gear resists it (netherite
 		// added too, since it's the higher tier — drop it if only diamond should be immune). Consumers
 		// add more.

@@ -7,8 +7,8 @@ import net.minecraft.util.Mth;
 /**
  * The Grave Zombie rig: the shared {@link GMMZombieModel} shamble with a phase-driven "digging" pose
  * swapped in for the two transitions. The whole rig — every part, moved together as one rigid unit,
- * not via independent per-part rotations (which read as a broken/twisted pose) — sinks below its
- * standing position while buried and rises back up as it surfaces, with a small uniform positional
+ * not via independent per-part rotations (which read as a broken/twisted pose) — sinks fully below
+ * the ground plane while buried and rises back up as it surfaces, with a small uniform positional
  * jitter layered on top for a "struggling to dig out" shudder. Arms additionally blend from
  * thrust-straight-up to the normal shamble pose as it rises (and the reverse on the way back down).
  * {@code riseAmount} (0 = fully buried, 1 = fully risen) is fed in by {@code GraveZombieRenderer} each
@@ -20,9 +20,17 @@ import net.minecraft.util.Mth;
 public class GraveZombieModel<T extends GraveZombie> extends GMMZombieModel<T> {
 
     // how far (model units; 16 = 1 block) the whole rig sinks below its standing position when fully
-    // buried -- doesn't need to fully hide it (it's invisible at riseAmount 0 anyway), just enough to
-    // visibly read as "emerging" partway through the transition.
-    private static final float SINK_DEPTH = 26.0F;
+    // buried. Enough to put the WHOLE rig under the ground plane, which the old 26 was not: the
+    // humanoid rig spans model y -8 (top of the head) to 24 (the feet, which sit on the ground
+    // plane), so 32 is the exact depth that drops the crown of the head to ground level. The extra 2
+    // is margin: the hat is the head cube grown by a 0.5 deformation, and armor layers grow it again.
+    //
+    // 26 was chosen on the reasoning that a fully buried zombie is invisible anyway, so the sink only
+    // had to read as "emerging" partway through the transition. That held right up until the
+    // invisibility went missing across a save (fixed in GraveZombie#readAdditionalSaveData) and the
+    // remaining ~5 units showed as a zombie head stuck in the floor. Burying the rig properly means
+    // that flag is no longer the only thing standing between a dormant zombie and a visible head.
+    private static final float SINK_DEPTH = 34.0F;
     // small whole-body jitter (model units, applied as position, not rotation) while transitioning --
     // every part gets the identical offset so the rig stays rigid instead of flexing part-to-part.
     private static final float SHAKE_AMOUNT = 1.1F;

@@ -135,36 +135,12 @@ public class AnimatedArmor extends GMMMonster {
     }
 
     /**
-     * A structure/hand-placed suit (a consumer calling vanilla's own {@code Mob#restrictTo(BlockPos,
-     * int)}, e.g. an armory guardian posed in a specific alcove) never despawns — same "anchored prop,
-     * not a wandering natural spawn" pattern {@code GraveZombie} uses for a hand-placed grave. A plain
-     * egg-spawned suit with no restriction set still despawns normally.
+     * An unactivated suit is furniture and must not drift off its post, so the anchor holds until it
+     * activates rather than until it has a target. See {@code Anchor}.
      */
     @Override
-    public void checkDespawn() {
-        if (this.hasRestriction()) {
-            return;
-        }
-        super.checkDespawn();
-    }
-
-    /**
-     * {@code restrictTo}'s radius is only meant to gate {@link #checkDespawn}, not to leash the suit to
-     * its post once it's fighting. Vanilla's own wander goals (e.g. the gated
-     * {@code WaterAvoidingRandomStrollGoal} below, which only ever runs after {@link #activate()}) pick
-     * candidate positions through this exact method, so left alone a restricted instance would keep
-     * wandering back toward its placement point forever, even chasing a target that led it away — the
-     * opposite of "a suit of armor that's been provoked." Once active, every position reads as within
-     * range; {@link #hasRestriction()}/{@link #getRestrictCenter()}/{@link #getRestrictRadius()}
-     * themselves are untouched, so {@link #checkDespawn} keeps working off the original placement data
-     * regardless of how far combat has dragged it since.
-     */
-    @Override
-    public boolean isWithinRestriction(BlockPos pos) {
-        if (isActive()) {
-            return true;
-        }
-        return super.isWithinRestriction(pos);
+    protected boolean isAnchorSuspended() {
+        return isActive() || super.isAnchorSuspended();
     }
 
     private static final String TAG_ACTIVE = "AnimatedArmorActive";
@@ -173,16 +149,6 @@ public class AnimatedArmor extends GMMMonster {
     public void addAdditionalSaveData(CompoundTag tag) {
         super.addAdditionalSaveData(tag);
         tag.putBoolean(TAG_ACTIVE, isActive());
-        // vanilla Mob's own restrictCenter/restrictRadius are never persisted by the base class --
-        // save/restore them ourselves so a placed suit stays anchored across a save/reload, same gotcha
-        // GraveZombie's class doc documents for its own restrictTo() usage.
-        if (this.hasRestriction()) {
-            BlockPos home = this.getRestrictCenter();
-            tag.putInt("HomePosX", home.getX());
-            tag.putInt("HomePosY", home.getY());
-            tag.putInt("HomePosZ", home.getZ());
-            tag.putInt("HomeRadius", (int) this.getRestrictRadius());
-        }
     }
 
     @Override
@@ -190,10 +156,6 @@ public class AnimatedArmor extends GMMMonster {
         super.readAdditionalSaveData(tag);
         if (tag.contains(TAG_ACTIVE) && tag.getBoolean(TAG_ACTIVE)) {
             activate();
-        }
-        if (tag.contains("HomePosX")) {
-            BlockPos home = new BlockPos(tag.getInt("HomePosX"), tag.getInt("HomePosY"), tag.getInt("HomePosZ"));
-            this.restrictTo(home, tag.getInt("HomeRadius"));
         }
     }
 
