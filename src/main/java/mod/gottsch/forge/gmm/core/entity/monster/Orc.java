@@ -53,10 +53,25 @@ public class Orc extends GMMMonster {
     private static final EntityDataAccessor<Boolean> IS_RANGED = SynchedEntityData.defineId(Orc.class, EntityDataSerializers.BOOLEAN);
     private static final String DATA_TAG = "data";
     private static final String IS_RANGED_TAG = "isRanged";
-    private static final byte RIGHT_SHOULDER_PAD = 0;
-    private static final byte LEFT_SHOULDER_PAD = 1;
-    private static final byte HAIR = 2;
-    private static final byte BRACERS = 3;
+    protected static final byte RIGHT_SHOULDER_PAD = 0;
+    protected static final byte LEFT_SHOULDER_PAD = 1;
+    protected static final byte HAIR = 2;
+    protected static final byte BRACERS = 3;
+
+    /**
+     * Every apparel bit set: both shoulder pads, the hair and the bracers.
+     *
+     * <p>Composed from the bit positions rather than written as a literal, so a fifth piece added to
+     * the model is worn by whoever asks for the full set without anyone remembering to widen a
+     * magic number. {@link OrcWarlord} is the one that asks &mdash; a chief in a random half of his
+     * kit reads as a grunt with a better weapon.</p>
+     *
+     * <p>Note it includes HAIR, which is not armour. The bits are one model-part field and the full
+     * set is the whole rig, which is the useful thing to be able to name; a subclass wanting the
+     * armour only can compose its own from the positions above.</p>
+     */
+    protected static final byte ALL_APPAREL = (byte) ((1 << RIGHT_SHOULDER_PAD)
+            | (1 << LEFT_SHOULDER_PAD) | (1 << HAIR) | (1 << BRACERS));
 
     /**
      * Consumer-supplied launcher for the Orc's ranged throw. The shared library owns no projectile,

@@ -91,6 +91,14 @@ public class GMMItemTagsProvider extends ItemTagsProvider {
 		tag(GMMTags.Items.SKELETON_CHAMPION_WEAPONS).add(Items.DIAMOND_SWORD, Items.NETHERITE_SWORD);
 		tag(GMMTags.Items.SKELETON_CHAMPION_SHIELDS).add(Items.SHIELD);
 
+		// Minotaur weapon pool: deliberately EMPTY here, unlike SKELETON_CHAMPION_WEAPONS above.
+		// The mob has a signature weapon -- the minotaur axe -- and the art for it lives in the
+		// consumers (dungeons2, ddenizens), not in gmm. Shipping vanilla axes as a default would
+		// mean a consumer that supplies the real axe still rolls a plain iron one two times in
+		// three, so gmm ships nothing and lets the consumer's tag entry BE the pool. A gmm install
+		// with no consumer leaves the Minotaur bare-fisted, which Minotaur#populateDefaultEquipmentSlots
+		// documents as an intended look.
+
 		// Orc Warlord weapon pool: a chief carries a real axe rather than the warband's chipped
 		// stone one (ORC_WEAPONS above is stone sword + stone axe). Axes rather than swords because
 		// the orc rig and its animation were built around one. Consumers add their own additively.

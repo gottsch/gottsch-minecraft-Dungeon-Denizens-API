@@ -31,6 +31,11 @@ public class GMMTags {
         // Orc weapon pool (consumer-populated)
         public static final TagKey<Item> ORC_WEAPONS = mod(GMM.MOD_ID, "orc/weapons");
 
+        // Minotaur weapon pool. Unlike the Orc pools there is no fallback: an empty tag leaves the
+        // Minotaur bare-fisted, which reads correctly for it. gmm ships heavy two-handers as the
+        // default; consumers add to it additively.
+        public static final TagKey<Item> MINOTAUR_WEAPONS = mod(GMM.MOD_ID, "minotaur/weapons");
+
         // The war-chief's own blade, separate from the warband's so a pack carrying stone axes does
         // not arm its leader with one. gmm ships iron/diamond/netherite axes as the default;
         // consumers add to it additively. An emptied pool falls back to ORC_WEAPONS rather than to bare fists --

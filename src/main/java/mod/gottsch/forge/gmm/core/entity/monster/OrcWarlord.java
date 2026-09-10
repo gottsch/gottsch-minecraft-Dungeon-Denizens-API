@@ -9,6 +9,7 @@ import mod.gottsch.forge.gmm.core.entity.ai.goal.target.AllyAlertNearestAttackab
 import mod.gottsch.forge.gottschcore.random.WeightedCollection;
 import mod.gottsch.forge.gmm.core.tag.GMMTags;
 import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
@@ -16,6 +17,8 @@ import net.minecraft.world.entity.EntityDimensions;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.MobSpawnType;
+import net.minecraft.world.entity.SpawnGroupData;
 import net.minecraft.world.entity.Pose;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
@@ -26,6 +29,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraftforge.registries.ForgeRegistries;
@@ -181,6 +185,29 @@ public class OrcWarlord extends Orc {
                 .add(Attributes.ARMOR_TOUGHNESS, 0.0D)
                 .add(Attributes.FOLLOW_RANGE, 24.0D)
                 .add(Attributes.KNOCKBACK_RESISTANCE, 0.4D);
+    }
+
+    /**
+     * A chief wears the whole rig, where a grunt's apparel is four coin flips.
+     *
+     * <p>{@link Orc#finalizeSpawn} rolls each of the shoulder pads, the hair and the bracers
+     * independently, so one warlord in sixteen turns up wearing none of it &mdash; and any of the
+     * missing pieces reads as a rank-and-file orc who happens to be holding the cleaver. The kit is
+     * what tells a player at a glance which one is the chief, and that has to be true of every one
+     * of them, not most.</p>
+     *
+     * <p>Set AFTER {@code super}, deliberately: the roll happens in there, so setting first would be
+     * overwritten by it. Everything else that method does &mdash; the weapon, the spawn bonuses, the
+     * ranged roll this class forces back off &mdash; is still wanted, which is why this overrides the
+     * result rather than replacing the method.</p>
+     */
+    @Override
+    public SpawnGroupData finalizeSpawn(ServerLevelAccessor level, DifficultyInstance difficulty,
+                                        MobSpawnType spawnType, SpawnGroupData groupData,
+                                        CompoundTag tag) {
+        SpawnGroupData data = super.finalizeSpawn(level, difficulty, spawnType, groupData, tag);
+        setData(ALL_APPAREL);
+        return data;
     }
 
     /**

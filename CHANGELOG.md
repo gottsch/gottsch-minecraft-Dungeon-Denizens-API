@@ -8,6 +8,79 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- 🐂 **Minotaur** — a bull-headed brute built to close distance violently. Slow, heavy, hard to
+  stagger and hard to run from: high knockback resistance, an attack that throws its target, and a
+  charge (below). Ships with `MinotaurModel`, `MinotaurRenderer` and the `gmm:minotaur/weapons` item
+  tag.
+
+  The tag is **deliberately empty in gmm**, unlike every other weapon pool here. The Minotaur has a
+  signature weapon — a great axe — and the art for it lives in the consumers, so a vanilla-axe
+  default would mean a consumer supplying the real thing still rolled a plain one two times in three.
+  A gmm install with no consumer leaves the Minotaur bare-fisted, which
+  `Minotaur#populateDefaultEquipmentSlots` documents as an intended look rather than a gap.
+
+  `MinotaurModel` extends `HumanoidModel` for its *animation*, not its geometry: the seven vanilla
+  part names are registered with **no cubes**, `super.setupAnim` poses them, and the real parts read
+  the rotations back out. `translateToHand` walks the real arm chain, since the inherited version
+  applies only the (now empty) vanilla arm's transform and would drop a held item at the mob's feet.
+  The digitigrade leg half-cancels its thigh swing at the foot so the hoof stays level through a
+  stride; the head is damped and clamped rather than tracking like a biped's; the two-segment tail
+  gives its lower joint the base's angle from a fixed phase earlier, which is what makes it read as a
+  tail rather than a rod.
+
+- 🏃 **`ChargeAttackGoal`** — a wind-up, a run and one heavy hit, usable by any `PathfinderMob`.
+  Fires only from the middle distance, so it is a way to *close* distance rather than a second melee
+  attack. It stops the mob dead for the wind-up (the telegraph), then **locks the target's position**
+  at the moment the run starts — a charge that steers is a homing missile, and a dodge should be
+  rewarded. Movement goes through `PathNavigation` rather than `deltaMovement`, so the charge follows
+  the floor, handles a step up, and does not bury the mob in a corridor wall. The impact reuses
+  `doHurtTarget`, so armour, enchantments, damage events and knockback resistance all behave
+  normally.
+
+  Its extra damage is a **flat** `ADDITION`, not a multiplier, and this matters:
+  `AttributeInstance.calculateValue` applies `MULTIPLY_BASE` *after* every `ADDITION`, and a held
+  weapon's damage is an `ADDITION`. A percentage bonus would therefore compound with whatever is in
+  the mob's hand, so arming a charging mob better would silently make its charge better, without
+  limit and without anyone choosing it.
+
+- 🐂 **`IChargingMob`** — opt-in pose hook for a mob that wants a visible tell while
+  `ChargeAttackGoal` is winding up and running. Same contract as `ICastingMob`: called only via
+  `instanceof`, never a hard cast, so a charging mob that wants no pose change simply does not
+  implement it.
+
+- 🗡️ **Orc Warlord** — the war-chief of an orc band: an `Orc` that leads rather than swings
+  first. Three abilities that are one fight rather than three buttons. He **calls** reinforcements,
+  he **rallies** what arrives (a periodic Strength + Speed refresh over a data-driven ally set), and
+  he **alerts** that same set the moment he acquires a target — so spotting the chief is being
+  spotted by the whole warband. He also keeps to the *edge* of his own troops (`AvoidCrowdGoal`), so
+  a player's sweep or AoE catches grunts instead of him.
+
+  **Extends `Orc`, not `GMMMonster`, and that is load-bearing:** `OrcModel.setupAnim` casts its
+  entity to `Orc` to read the shoulder-pad/hair/bracer bits, so a warlord that were not an Orc would
+  crash the renderer on first sight of one. It also inherits the cosmetic roll, the data-driven
+  weapon and the ranged-throw option, which is why he reads as *his own warband's* leader rather
+  than a different monster wearing red. The two ally-alerting target goals **replace** the pair `Orc`
+  installs rather than sitting above them — both share `Goal.Flag.TARGET`, so a leftover pair would
+  never run and would read as intent to whoever came next.
+
+  Rally cadence and crowd-spacing are `SkeletonChampion`'s deliberately, down to the same
+  `gmm:mob_config` keys — two pack leaders behaving by different rules would be two things to learn
+  for no gain. The **summon is four times the rally's cadence, not twice**: the rally refreshes a
+  buff and can afford to be frequent, while the horn adds *bodies*, and bodies do not expire.
+
+  **Two consumer hooks, and both fail silently** — the same trap as `Orc.projectileLauncher`, so
+  they are documented on the class rather than left to be discovered:
+  `OrcWarlord.summonMobs` (unset, the horn goal is never added and the chief never calls anyone) and
+  the `gmm:orc_warlord/rally_allies` entity-type tag, which gmm ships **empty** because gmm registers
+  no entities (unpopulated, both the rally and the alert reach nothing). A warlord with neither is a
+  slightly tough orc that looks like a boss.
+
+  Ships with `OrcWarlordRenderer` (a visual-only 1.2× scale over the rank and file — consumers should
+  size the hitbox as a plain Orc, or the chief wedges in the doorways his own warband walks through)
+  and the `gmm:orc_warlord/weapons` item tag, defaulting to iron/diamond/netherite axes so a chief
+  carries a real weapon rather than the warband's chipped stone one. An emptied pool falls back to
+  `gmm:orc/weapons` rather than to bare fists.
+
 - ⚓ **Anchoring, for every GMM mob** — a consumer can post any GMM mob to guard a position by
   calling vanilla's own `Mob#restrictTo(BlockPos, int)` on the instance it just placed. An anchored
   mob keeps to its post while idle and never despawns; an unanchored one is untouched, so this is
@@ -31,6 +104,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   consumer wanting a mob to actively walk back to its post adds `MoveTowardsRestrictionGoal`.
 
 ### Changed
+- 👑 **The Orc Warlord now spawns in his full kit.** `Orc#finalizeSpawn` rolls each apparel bit —
+  both shoulder pads, the hair, the bracers — as an independent coin flip, and the Warlord inherited
+  that, so one chief in sixteen turned up wearing none of it and most turned up wearing some. The kit
+  is what tells a player at a glance which orc is the chief, so it now has to be true of every one of
+  them: `OrcWarlord#finalizeSpawn` sets all four bits *after* calling `super`, which is where the roll
+  happens. Everything else `super` does — the weapon from his own pool, the spawn bonuses, the ranged
+  roll he forces back off — is unchanged.
+
+  The bits are named by a new `Orc.ALL_APPAREL`, composed from the four positions rather than written
+  as `0b1111`, so a fifth model part is worn by whoever asks for the full set without anyone
+  remembering to widen a literal. The four position constants went from `private` to `protected` for
+  it. Note `ALL_APPAREL` includes HAIR, which is not armour: the byte is one model-part field and the
+  full rig is the useful thing to name.
+
+- 🗡️ **`OrcModel` and `OrcShamanModel` no longer use the hidden-cubes hack.** Both registered the
+  seven vanilla parts as *real cubes* and hid them with `visible = false`, then placed a held item by
+  hand-tuning the hidden `rightArm` to `(-6.5, 4.0)` so the inherited `translateToHand` happened to
+  land near the fist. The vanilla names are now registered with **no cubes** and `translateToHand`
+  walks the real arm chain (`orcBody > orc*Arm > orc*LowerArm`), which is the same pattern
+  `MinotaurModel` uses.
+
+  The hack drifted with the swing, which is exactly what the model's original comment complained
+  about ("can't get the held item to rotate/swing properly with the arm") — a single rotation about
+  the hidden arm's pivot cannot reproduce a two-bone arm with an elbow bend. Measured distance from
+  the item origin to the forearm's fist point: **0.64 units at rest, 3.03 at ±60° of swing**; the chain
+  version is 0.00 at every angle. Right-hand placement at rest is unchanged to within 0.1 units, so
+  nothing visibly moves for an existing orc. The hidden cubes also overlapped real orc UV regions
+  (`texOffs(0,0)` is the torso), harmless only because they never rendered.
+
 - ⚓ **Grave Zombie, Animated Armor and Wood Golem now share the one anchor implementation.** All
   three had grown their own copy of the same `checkDespawn` override, the same `isWithinRestriction`
   exemption and the same `HomePosX/Y/Z` + `HomeRadius` save-data block. Behaviour is unchanged and
@@ -40,6 +142,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   activates, both now expressed as one-line `isAnchorSuspended()` overrides.
 
 ### Fixed
+- 🗡️ **Orc / Orc Shaman offhand items rendered in the wrong place.** Only the *right* hidden
+  vanilla arm was ever hand-tuned; `left_arm` kept vanilla's `(5.0, 2.0)`, so an item in an Orc's
+  offhand drew **1.5 units across and 2 up** from the actual left fist. Latent because the Orc equips
+  an empty offhand by default — it would have appeared the moment a consumer gave one a shield.
+  Fixed by the `translateToHand` refactor above, which derives both hands from the real geometry.
 - 🧟 **Grave Zombie** — a dormant zombie came back from a chunk unload/reload **visible**, showing as
   a zombie head stuck in the floor rather than as a hidden grave. Being burrowed is two things — AI
   off and invisible — and only the first survived a save: `Mob` persists `NoAi`, but nothing at all

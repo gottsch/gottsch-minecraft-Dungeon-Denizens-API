@@ -17,6 +17,7 @@ import net.minecraft.client.model.geom.builders.MeshDefinition;
 import net.minecraft.client.model.geom.builders.PartDefinition;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
+import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.entity.LivingEntity;
 
 /**
@@ -24,9 +25,15 @@ import net.minecraft.world.entity.LivingEntity;
  * inflated outer head cube with a genuine alpha cutout for the face, same idiom as vanilla's hat
  * layer) and a full robe (shoulders + torso + independently-posed front/back flaps, merged into
  * {@code orcBody}). Ported from the Blockbench export at
- * {@code Blockbench/Dungeon Denizens/forge/orc shaman/OrcShaman.bbmodel}; kept the same
- * "extend HumanoidModel, hide the vanilla parts, drive the real geometry by hand" hackery
- * {@link OrcModel} already uses so vanilla's attack/walk animation keeps working.
+ * {@code Blockbench/Dungeon Denizens/forge/orc shaman/OrcShaman.bbmodel}; follows the same pattern
+ * {@link OrcModel} does -- extend {@code HumanoidModel} for its animation, register the seven vanilla
+ * part names with no cubes, and drive the real geometry from the pose {@code super.setupAnim}
+ * computes -- so vanilla's attack/walk animation keeps working.
+ * <p>
+ * Refactored alongside {@link OrcModel} on 2026-09-07 off the hidden-cubes version; see that class
+ * for what changed and why. The staff below is baked geometry, so the mainhand fix does not show on
+ * this rig -- but {@link #translateToHand} is correct here too, which matters for the offhand and for
+ * any consumer that arms a Shaman.
  * <p>
  * The staff is baked directly into {@code orcRightLowerArm}'s geometry ({@code staffShaft} /
  * {@code staffHead}) rather than an equippable item -- {@code OrcShaman} keeps its main hand empty
@@ -47,6 +54,8 @@ public class OrcShamanModel<T extends LivingEntity> extends HumanoidModel<T> imp
 	private final ModelPart orcBody;
 	private final ModelPart orcLeftArm;
 	private final ModelPart orcRightArm;
+	private final ModelPart orcRightLowerArm;
+	private final ModelPart orcLeftLowerArm;
 	private final ModelPart orcLeftLeg;
 	private final ModelPart orcRightLeg;
 	private final ModelPart mouth;
@@ -69,8 +78,10 @@ public class OrcShamanModel<T extends LivingEntity> extends HumanoidModel<T> imp
 		this.orcRightLeg = root.getChild("orcRightLeg");
 		mouth = orcHead.getChild("jaw");
 
-		rightBracer = orcRightArm.getChild("orcRightLowerArm").getChild("orcRightBracer");
-		leftBracer = orcLeftArm.getChild("orcLeftLowerArm").getChild("orcLeftBracer");
+		orcRightLowerArm = orcRightArm.getChild("orcRightLowerArm");
+		orcLeftLowerArm = orcLeftArm.getChild("orcLeftLowerArm");
+		rightBracer = orcRightLowerArm.getChild("orcRightBracer");
+		leftBracer = orcLeftLowerArm.getChild("orcLeftBracer");
 
 		// save orc arm original positions
 		rightArmX = orcRightArm.x;
@@ -78,29 +89,23 @@ public class OrcShamanModel<T extends LivingEntity> extends HumanoidModel<T> imp
 		rightArmY = orcRightArm.y;
 		leftArmY = orcLeftArm.y;
 
-		// hackery: hide humanoid parts
-		head.visible = false;
-		hat.visible = false;
-		body.visible = false;
-		rightArm.visible = false;
-		leftArm.visible = false;
-		rightLeg.visible = false;
-		leftLeg.visible = false;
 	}
 
 	public static LayerDefinition createBodyLayer() {
 		MeshDefinition meshdefinition = new MeshDefinition();
 		PartDefinition partdefinition = meshdefinition.getRoot();
 
-		////// hackery: add humanoid parts here because the HumanoidModel.createMesh() is not called. ensure not to actually render them later
-		partdefinition.addOrReplaceChild("head", CubeListBuilder.create().texOffs(0, 0).addBox(-4.0F, -8.0F, -4.0F, 8.0F, 8.0F, 8.0F, CubeDeformation.NONE), PartPose.offset(0.0F, 0.0F, 0.0F));
-		partdefinition.addOrReplaceChild("hat", CubeListBuilder.create().texOffs(32, 0).addBox(-4.0F, -8.0F, -4.0F, 8.0F, 8.0F, 8.0F, CubeDeformation.NONE.extend(0.5F)), PartPose.offset(0.0F, 0.0F, 0.0F));
-		partdefinition.addOrReplaceChild("body", CubeListBuilder.create().texOffs(16, 16).addBox(-4.0F, 0.0F, -2.0F, 8.0F, 12.0F, 4.0F, CubeDeformation.NONE), PartPose.offset(0.0F, 0.0F, 0.0F));
-		partdefinition.addOrReplaceChild("right_arm", CubeListBuilder.create().texOffs(40, 16).addBox(-3.0F, -2.0F, -2.0F, 4.0F, 12.0F, 4.0F, CubeDeformation.NONE), PartPose.offset(-6.5F, 4.0F, 0.0F));
-		partdefinition.addOrReplaceChild("left_arm", CubeListBuilder.create().texOffs(40, 16).mirror().addBox(-1.0F, -2.0F, -2.0F, 4.0F, 12.0F, 4.0F, CubeDeformation.NONE), PartPose.offset(5.0F, 2.0F, 0.0F));
-		partdefinition.addOrReplaceChild("right_leg", CubeListBuilder.create().texOffs(0, 16).addBox(-2.0F, 0.0F, -2.0F, 4.0F, 12.0F, 4.0F, CubeDeformation.NONE), PartPose.offset(-1.9F, 12.0F, 0.0F));
-		partdefinition.addOrReplaceChild("left_leg", CubeListBuilder.create().texOffs(0, 16).mirror().addBox(-2.0F, 0.0F, -2.0F, 4.0F, 12.0F, 4.0F, CubeDeformation.NONE), PartPose.offset(1.9F, 12.0F, 0.0F));
-		///////////////////
+		// The seven part names HumanoidModel's constructor demands, registered with NO cubes. They
+		// exist only so super.setupAnim() has somewhere to write the vanilla pose that setupAnim()
+		// reads back out; nothing here ever renders. Before 2026-09-07 these carried real vanilla
+		// cubes that were then hidden with visible = false -- see the class javadoc.
+		partdefinition.addOrReplaceChild("head", CubeListBuilder.create(), PartPose.ZERO);
+		partdefinition.addOrReplaceChild("hat", CubeListBuilder.create(), PartPose.ZERO);
+		partdefinition.addOrReplaceChild("body", CubeListBuilder.create(), PartPose.ZERO);
+		partdefinition.addOrReplaceChild("right_arm", CubeListBuilder.create(), PartPose.ZERO);
+		partdefinition.addOrReplaceChild("left_arm", CubeListBuilder.create(), PartPose.ZERO);
+		partdefinition.addOrReplaceChild("right_leg", CubeListBuilder.create(), PartPose.ZERO);
+		partdefinition.addOrReplaceChild("left_leg", CubeListBuilder.create(), PartPose.ZERO);
 
 		///// orc shaman model parts //////////////
 		// orcHead: skull "ears", eye plate, and an inflated cowl shell -- all merged into one cube list,
@@ -146,12 +151,9 @@ public class OrcShamanModel<T extends LivingEntity> extends HumanoidModel<T> imp
 
 	@Override
 	public void setupAnim(T entity, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch) {
-		// hackery: calculate humanoid parts positions
+		// let HumanoidModel pose the (empty) vanilla parts -- walk cycle, attack swing,
+		// bow/riding poses -- then read the arm rotations back out below.
 		super.setupAnim(entity, limbSwing, limbSwingAmount, ageInTicks, netHeadYaw, headPitch);
-		// reset humanoid right arm position
-		this.rightArm.x = -6.5F;
-		this.rightArm.y = 4.0F;
-
 		// reset orc arm positions
 		orcRightArm.x = rightArmX;
 		orcLeftArm.x = leftArmX;
@@ -182,16 +184,14 @@ public class OrcShamanModel<T extends LivingEntity> extends HumanoidModel<T> imp
 		/*
 		 * arms
 		 */
-		// hackery: set orc arms to that of humanoid arms
+		// take the arm swing HumanoidModel just computed and put it on the real arms
 		this.orcRightArm.xRot = this.rightArm.xRot;
 		this.orcLeftArm.xRot = this.leftArm.xRot;
 
 		// bob the arms
-		bobArmPart(this.rightArm, ageInTicks, 1.0F);
 		bobArmPart(this.orcRightArm, ageInTicks, 1.0F);
 		bobArmPart(this.orcLeftArm, ageInTicks, -1.0F);
 
-		rightArm.y = 4.0F + (Mth.cos(ageInTicks * 0.1F) * 0.5F + 0.05F);
 		orcRightArm.y = rightArmY + (Mth.cos(ageInTicks * 0.1F) * 0.5F + 0.05F);
 		orcLeftArm.y = leftArmY + (Mth.cos(ageInTicks * 0.1F) * 0.5F + 0.05F);
 
@@ -214,6 +214,33 @@ public class OrcShamanModel<T extends LivingEntity> extends HumanoidModel<T> imp
 		orcBody.render(poseStack, buffer, packedLight, packedOverlay);
 		orcLeftLeg.render(poseStack, buffer, packedLight, packedOverlay);
 		orcRightLeg.render(poseStack, buffer, packedLight, packedOverlay);
+	}
+
+	/**
+	 * Positions the {@code PoseStack} at the mainhand/offhand fist so {@code ItemInHandLayer} can
+	 * render the equipped weapon there.
+	 *
+	 * <p>The inherited {@code HumanoidModel} version applies only the vanilla arm part's own local
+	 * transform. That works for vanilla, whose arm is a direct child of an unoffset root, but this
+	 * rig's arm is three deep -- {@code orcBody > orc*Arm > orc*LowerArm} -- and the vanilla arm is
+	 * now an empty stub. Walking the real chain reconstructs the same composed transform
+	 * {@code orcBody.render()} builds, which is what makes a held item swing WITH the arm rather
+	 * than approximately alongside it.
+	 *
+	 * <p>The trailing nudge lines the item up with the fist. {@code ItemInHandLayer} places the item,
+	 * in the frame this method leaves behind, at {@code (-1, 10, -2)} for the right hand and
+	 * {@code (+1, 10, -2)} for the left -- the bottom-front-centre of a <i>vanilla</i> 4x12x4 arm
+	 * pivoting at the shoulder. This forearm is 8 long and 0.1 inflated, with its cube centred half
+	 * a unit off the bone, so its bottom-front-centre is {@code (-+0.5, 8, -2.1)}. Hence
+	 * {@code (+-0.5, -2, -0.1)}.
+	 */
+	@Override
+	public void translateToHand(HumanoidArm side, PoseStack poseStack) {
+		boolean right = side == HumanoidArm.RIGHT;
+		this.orcBody.translateAndRotate(poseStack);
+		(right ? this.orcRightArm : this.orcLeftArm).translateAndRotate(poseStack);
+		(right ? this.orcRightLowerArm : this.orcLeftLowerArm).translateAndRotate(poseStack);
+		poseStack.translate((right ? 0.5F : -0.5F) / 16.0F, -2.0F / 16.0F, -0.1F / 16.0F);
 	}
 
 	public ModelPart getAttackArm() {
